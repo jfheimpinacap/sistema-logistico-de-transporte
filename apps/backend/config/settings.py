@@ -9,14 +9,27 @@ ROOT_DIR = BASE_DIR.parent.parent
 
 load_dotenv(ROOT_DIR / ".env")
 
-SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "change-me")
-DEBUG = os.getenv("DJANGO_DEBUG", "True").lower() in {"1", "true", "yes", "on"}
 
-ALLOWED_HOSTS = [
-    host.strip()
-    for host in os.getenv("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
-    if host.strip()
-]
+def env_bool(name: str, default: bool) -> bool:
+    """Read a boolean environment variable using common truthy and falsy values."""
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "t", "yes", "y", "on"}
+
+
+def env_list(name: str, default: str) -> list[str]:
+    """Read a comma-separated environment variable as a clean list."""
+    return [item.strip() for item in os.getenv(name, default).split(",") if item.strip()]
+
+
+APP_OPEN_URL = os.getenv("APP_OPEN_URL", "http://localhost:5175")
+BACKEND_PORT = os.getenv("BACKEND_PORT", "8002")
+FRONTEND_PORT = os.getenv("FRONTEND_PORT", "5175")
+
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "change-me")
+DEBUG = env_bool("DJANGO_DEBUG", True)
+ALLOWED_HOSTS = env_list("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1")
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -27,6 +40,8 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "corsheaders",
+    "apps.core",
+    "apps.accounts",
 ]
 
 MIDDLEWARE = [
@@ -82,14 +97,10 @@ USE_TZ = True
 STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-CORS_ALLOWED_ORIGINS = [
-    origin.strip()
-    for origin in os.getenv(
-        "CORS_ALLOWED_ORIGINS",
-        "http://localhost:5175,http://127.0.0.1:5175",
-    ).split(",")
-    if origin.strip()
-]
+CORS_ALLOWED_ORIGINS = env_list(
+    "CORS_ALLOWED_ORIGINS",
+    f"http://localhost:{FRONTEND_PORT},http://127.0.0.1:{FRONTEND_PORT}",
+)
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (

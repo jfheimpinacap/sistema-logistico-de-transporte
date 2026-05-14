@@ -66,10 +66,20 @@ def run_checked(command: list[str], cwd: Path) -> int:
         return 1
 
 
+def run_manage(command: list[str]) -> int:
+    """Run a Django management command with the current Python executable."""
+    manage_py = BACKEND_DIR / "manage.py"
+    if not manage_py.exists():
+        print("[ERROR] No existe apps/backend/manage.py")
+        return 1
+    return run_checked([sys.executable, str(manage_py), *command], ROOT_DIR)
+
+
 def prepare() -> int:
-    """Install base backend and frontend dependencies when tools are available."""
+    """Install dependencies, run migrations, and seed development data."""
     load_env()
     exit_code = 0
+    backend_ready = False
 
     print("[PREPARE] Preparando dependencias del backend...")
     requirements = BACKEND_DIR / "requirements.txt"
@@ -79,9 +89,22 @@ def prepare() -> int:
             ROOT_DIR,
         )
         exit_code = exit_code or backend_code
+        backend_ready = backend_code == 0
     else:
         print("[WARN] No se encontró apps/backend/requirements.txt")
         exit_code = exit_code or 1
+
+    if backend_ready:
+        print("[PREPARE] Ejecutando migraciones del backend...")
+        migrate_code = run_manage(["migrate"])
+        exit_code = exit_code or migrate_code
+
+        if migrate_code == 0:
+            print("[PREPARE] Creando o actualizando usuario demo...")
+            seed_code = run_manage(["seed_demo_user"])
+            exit_code = exit_code or seed_code
+    else:
+        print("[WARN] Se omiten migraciones y usuario demo porque el backend no quedó listo.")
 
     print("[PREPARE] Preparando dependencias del frontend...")
     npm = npm_command()
