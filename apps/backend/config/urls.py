@@ -1,15 +1,9 @@
 """URL configuration for the logistics transport system."""
 from django.contrib import admin
-from django.http import JsonResponse
-from django.urls import path
-
-
-def health_check(_request):
-    """Return a minimal response to confirm the backend is running."""
-    return JsonResponse({"status": "ok", "service": "sistema-logistico-de-transporte"})
-
+from django.urls import include, path
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("api/health/", health_check, name="health-check"),
+    path("api/", include("apps.core.urls")),
+    path("api/auth/", include("apps.accounts.urls")),
 ]
