@@ -103,6 +103,15 @@ def prepare() -> int:
             print("[PREPARE] Creando o actualizando usuario demo...")
             seed_code = run_manage(["seed_demo_user"])
             exit_code = exit_code or seed_code
+
+            print("[PREPARE] Creando o actualizando datos maestros logísticos demo...")
+            logistics_seed_code = run_manage(["seed_demo_logistics"])
+            if logistics_seed_code != 0:
+                print(
+                    "[WARN] No se pudieron sembrar datos logísticos demo. "
+                    "Verifica dependencias, migraciones o disponibilidad del comando."
+                )
+            exit_code = exit_code or logistics_seed_code
     else:
         print("[WARN] Se omiten migraciones y usuario demo porque el backend no quedó listo.")
 
