@@ -6,6 +6,15 @@ import { DashboardPage } from '../pages/DashboardPage'
 import { HealthPage } from '../pages/HealthPage'
 import { LoginPage } from '../pages/LoginPage'
 import { NotFoundPage } from '../pages/NotFoundPage'
+import { AddressesPage } from '../pages/masters/AddressesPage'
+import { ContactsPage } from '../pages/masters/ContactsPage'
+import { CustomersPage } from '../pages/masters/CustomersPage'
+import { DriversPage } from '../pages/masters/DriversPage'
+import { MastersHomePage } from '../pages/masters/MastersHomePage'
+import { VehicleTypesPage } from '../pages/masters/VehicleTypesPage'
+import { VehiclesPage } from '../pages/masters/VehiclesPage'
+import { WarehousesPage } from '../pages/masters/WarehousesPage'
+import { ZonesPage } from '../pages/masters/ZonesPage'
 
 type RouterContextValue = {
   path: string
@@ -59,6 +68,35 @@ function RouterProvider({ children }: { children: ReactNode }) {
   return <RouterContext.Provider value={value}>{children}</RouterContext.Provider>
 }
 
+function renderProtectedPage(path: string) {
+  switch (path) {
+    case '/':
+      return <DashboardPage />
+    case '/health':
+      return <HealthPage />
+    case '/masters':
+      return <MastersHomePage />
+    case '/masters/customers':
+      return <CustomersPage />
+    case '/masters/contacts':
+      return <ContactsPage />
+    case '/masters/zones':
+      return <ZonesPage />
+    case '/masters/addresses':
+      return <AddressesPage />
+    case '/masters/warehouses':
+      return <WarehousesPage />
+    case '/masters/vehicle-types':
+      return <VehicleTypesPage />
+    case '/masters/vehicles':
+      return <VehiclesPage />
+    case '/masters/drivers':
+      return <DriversPage />
+    default:
+      return <NotFoundPage />
+  }
+}
+
 function ProtectedShell() {
   const { accessToken, isAuthenticated, isLoading } = useAuth()
   const { navigate, path } = useAppRouter()
@@ -81,15 +119,7 @@ function ProtectedShell() {
     return null
   }
 
-  if (path === '/') {
-    return <AppLayout><DashboardPage /></AppLayout>
-  }
-
-  if (path === '/health') {
-    return <AppLayout><HealthPage /></AppLayout>
-  }
-
-  return <AppLayout><NotFoundPage /></AppLayout>
+  return <AppLayout>{renderProtectedPage(path)}</AppLayout>
 }
 
 function RedirectToDashboard() {
