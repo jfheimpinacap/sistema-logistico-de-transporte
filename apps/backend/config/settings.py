@@ -42,6 +42,9 @@ INSTALLED_APPS = [
     "corsheaders",
     "apps.core",
     "apps.accounts",
+    "apps.parties",
+    "apps.locations",
+    "apps.fleet",
 ]
 
 MIDDLEWARE = [
