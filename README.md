@@ -4,7 +4,7 @@ Sistema logístico tipo TMS liviano para controlar transporte de mercancías, en
 
 ## Estado actual
 
-**Prompt 004 — Backend maestros logísticos iniciales**
+**Prompt 005 — Frontend CRUD de maestros logísticos**
 
 El proyecto cuenta con:
 
@@ -14,9 +14,10 @@ El proyecto cuenta con:
 - Endpoint de salud del backend.
 - Frontend operativo base con login demo, layout, dashboard inicial y página de health.
 - APIs REST autenticadas para maestros logísticos iniciales: clientes, contactos, zonas, direcciones, bodegas, tipos de vehículo, vehículos y conductores.
+- CRUD frontend protegido para administrar clientes, contactos, zonas, direcciones, bodegas, tipos de vehículo, vehículos y conductores.
 - Seeds idempotentes para usuario demo y datos maestros logísticos demo.
 
-> El CRUD frontend de estos maestros todavía no está implementado. Queda pendiente para el **Prompt 005**.
+> Encomiendas, bultos, rutas reales, paradas, tracking, incidencias, documentos internos, optimización, GPS y app conductor quedan para próximos prompts.
 
 ## Stack técnico
 
@@ -137,6 +138,15 @@ El comando sin argumentos asume `dev`. En Windows intenta abrir backend y fronte
 - `GET /login` — pantalla pública de login demo.
 - `GET /` — dashboard operativo base, protegido por autenticación.
 - `GET /health` — estado del sistema conectado a `GET /api/health/`, protegido por autenticación.
+- `GET /masters` — índice de maestros logísticos, protegido por autenticación.
+- `GET /masters/customers` — CRUD frontend de clientes.
+- `GET /masters/contacts` — CRUD frontend de contactos.
+- `GET /masters/zones` — CRUD frontend de zonas.
+- `GET /masters/addresses` — CRUD frontend de direcciones.
+- `GET /masters/warehouses` — CRUD frontend de bodegas.
+- `GET /masters/vehicle-types` — CRUD frontend de tipos de vehículo.
+- `GET /masters/vehicles` — CRUD frontend de vehículos.
+- `GET /masters/drivers` — CRUD frontend de conductores.
 
 ## Endpoints backend disponibles
 
@@ -175,6 +185,17 @@ Todos los endpoints siguientes requieren header `Authorization: Bearer <access_t
 - `/api/vehicles/`
 - `/api/drivers/`
 
+El frontend de maestros usa estos endpoints para `GET`, `POST`, `PATCH` y `DELETE`:
+
+- `GET|POST /api/customers/` y `PATCH|DELETE /api/customers/<id>/`
+- `GET|POST /api/contacts/` y `PATCH|DELETE /api/contacts/<id>/`
+- `GET|POST /api/zones/` y `PATCH|DELETE /api/zones/<id>/`
+- `GET|POST /api/addresses/` y `PATCH|DELETE /api/addresses/<id>/`
+- `GET|POST /api/warehouses/` y `PATCH|DELETE /api/warehouses/<id>/`
+- `GET|POST /api/vehicle-types/` y `PATCH|DELETE /api/vehicle-types/<id>/`
+- `GET|POST /api/vehicles/` y `PATCH|DELETE /api/vehicles/<id>/`
+- `GET|POST /api/drivers/` y `PATCH|DELETE /api/drivers/<id>/`
+
 Parámetros simples soportados en listados:
 
 - `search=<texto>` para búsqueda básica.
@@ -186,6 +207,21 @@ Ejemplo:
 curl "http://localhost:8002/api/vehicles/?search=CAMI&is_active=true" \
   -H "Authorization: Bearer <access_token>"
 ```
+
+
+## Flujo de prueba del Prompt 005
+
+```bash
+py start.py prepare
+py start.py dev
+```
+
+Luego abre el frontend en `http://localhost:5175`, entra a `/login` con:
+
+- Usuario demo: `demo`
+- Password: `demo1234`
+
+Después abre `/masters` para entrar al índice de maestros y prueba altas, ediciones, búsqueda, filtro por estado y desactivación de registros.
 
 ## Credenciales demo
 
@@ -236,7 +272,7 @@ Incluye únicamente:
 - Endpoint de salud `GET /api/health/`.
 - Endpoints JWT de login, refresh y usuario actual.
 - Usuario demo para desarrollo local.
-- Frontend React con rutas, login demo, contexto de autenticación, layout operativo, dashboard estático y página de estado del sistema.
+- Frontend React con rutas, login demo, contexto de autenticación, layout operativo, dashboard, página de estado del sistema y CRUD inicial de maestros logísticos.
 - Backend de maestros logísticos iniciales con apps `parties`, `locations` y `fleet`.
 
-No incluye todavía encomiendas, bultos, rutas, paradas, tracking de paquetes, incidencias, documentos internos, optimización de rutas ni CRUD frontend para maestros. Eso queda pendiente para próximos prompts, comenzando en el **Prompt 005**.
+No incluye todavía encomiendas, bultos, rutas reales, paradas, tracking de paquetes, incidencias, documentos internos, optimización de rutas, GPS ni app conductor. Eso queda pendiente para próximos prompts, comenzando en el **Prompt 006**.
