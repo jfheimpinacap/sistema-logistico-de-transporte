@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     "apps.logistics",
     "apps.routing",
     "apps.fieldops",
+    "apps.documents",
 ]
 
 MIDDLEWARE = [
