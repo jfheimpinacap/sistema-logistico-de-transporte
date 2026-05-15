@@ -40,13 +40,17 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
   const { token, headers, ...init } = options
   const normalizedPath = path.startsWith('/') ? path : `/${path}`
 
+  const requestHeaders = new Headers(headers)
+  if (!(init.body instanceof FormData) && !requestHeaders.has('Content-Type')) {
+    requestHeaders.set('Content-Type', 'application/json')
+  }
+  if (token) {
+    requestHeaders.set('Authorization', `Bearer ${token}`)
+  }
+
   const response = await fetch(`${API_BASE_URL}${normalizedPath}`, {
     ...init,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...headers,
-    },
+    headers: requestHeaders,
   })
 
   const payload = await parseResponse(response)

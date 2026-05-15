@@ -4,7 +4,7 @@ Sistema logístico tipo TMS liviano para controlar transporte de mercancías, en
 
 ## Estado actual
 
-**Prompt 010 — Backend de evidencias de entrega e incidencias operativas**
+**Prompt 011 — Frontend de evidencias de entrega e incidencias operativas**
 
 El proyecto cuenta con:
 
@@ -21,8 +21,9 @@ El proyecto cuenta con:
 - Backend de rutas reales con paradas ordenadas, asignación de conductor/vehículo y vinculación de encomiendas a rutas.
 - Frontend protegido para administrar rutas, paradas, asignación de encomiendas, cambio de estados, recálculo de resumen y reordenamiento manual de paradas.
 - Backend de evidencias de entrega e incidencias operativas con archivos en `media/`, acciones de revisión/resolución y tracking asociado.
+- Frontend protegido para administrar evidencias de entrega e incidencias operativas, incluyendo formularios con archivos opcionales, filtros, detalle y acciones custom.
 
-> Frontend de evidencias/incidencias, app conductor, documentos internos, optimización automática, mapas externos y GPS en tiempo real quedan para próximos prompts.
+> App conductor, documentos internos, optimización automática, mapas externos, cámara móvil, firma dibujada y GPS en tiempo real quedan para próximos prompts.
 
 ## Stack técnico
 
@@ -160,11 +161,13 @@ El comando sin argumentos asume `dev`. En Windows intenta abrir backend y fronte
 - `GET /masters/vehicle-types` — CRUD frontend de tipos de vehículo.
 - `GET /masters/vehicles` — CRUD frontend de vehículos.
 - `GET /masters/drivers` — CRUD frontend de conductores.
-- `GET /operations` — índice del módulo operativo de encomiendas, bultos, tracking y rutas.
+- `GET /operations` — índice del módulo operativo de encomiendas, bultos, tracking, rutas, evidencias e incidencias.
 - `GET /operations/shipments` — administración frontend de encomiendas con filtros, detalle y cambio de estado.
 - `GET /operations/packages` — administración frontend de bultos asociados a encomiendas.
 - `GET /operations/tracking` — consulta frontend de eventos de tracking.
 - `GET /operations/routes` — administración frontend de rutas, paradas, asignación de encomiendas, estados y resumen.
+- `GET /operations/delivery-proofs` — administración frontend de evidencias de entrega con filtros, creación/edición, detalle, aceptación, rechazo y desactivación.
+- `GET /operations/incidents` — administración frontend de incidencias con filtros, creación/edición, detalle, resolución, cancelación y desactivación.
 
 ## Endpoints backend disponibles
 
@@ -289,9 +292,7 @@ curl -X POST http://localhost:8002/api/incidents/1/resolve/ \
   -d '{"resolution_notes":"Se reprograma entrega para mañana"}'
 ```
 
-> Frontend de evidencias/incidencias y app conductor quedan para próximos prompts.
-
-> App conductor, documentos internos, GPS, optimización automática e integración con mapas externos quedan para próximos prompts.
+> App conductor, documentos internos, GPS, cámara móvil, firma dibujada, optimización automática e integración con mapas externos quedan para próximos prompts.
 
 Ejemplo de cambio de estado:
 
@@ -303,19 +304,25 @@ curl -X POST http://localhost:8002/api/shipments/1/change-status/ \
 ```
 
 
-## Flujo de prueba del Prompt 010
+## Flujo de prueba del Prompt 011
 
 ```bash
 py start.py prepare
 py start.py dev
 ```
 
+Rutas principales de prueba:
+
+- `/login`
+- `/operations/delivery-proofs`
+- `/operations/incidents`
+
 Luego abre el frontend en `http://localhost:5175`, entra a `/login` con:
 
 - Usuario demo: `demo`
 - Password: `demo1234`
 
-Después abre `/operations/routes` para listar rutas, crear/editar registros, revisar detalle, administrar paradas, asignar encomiendas, cambiar estados, recalcular resumen y reordenar paradas. Las evidencias/incidencias ya tienen backend y quedan sin pantalla frontend hasta el Prompt 011. Si faltan datos base, entra primero a `/masters` para crear bodegas, conductores, vehículos o direcciones.
+Después abre `/operations/delivery-proofs` para listar, crear/editar, revisar detalle, aceptar/rechazar o desactivar evidencias. Luego abre `/operations/incidents` para listar, crear/editar, revisar detalle, resolver/cancelar o desactivar incidencias. Si faltan datos base, entra primero a `/masters`, `/operations/shipments` o `/operations/routes` para crear encomiendas, rutas, conductores o vehículos.
 
 ### Endpoints usados por el frontend operativo
 
@@ -418,11 +425,12 @@ Incluye únicamente:
 - Endpoint de salud `GET /api/health/`.
 - Endpoints JWT de login, refresh y usuario actual.
 - Usuario demo para desarrollo local.
-- Frontend React con rutas, login demo, contexto de autenticación, layout operativo, dashboard, página de estado del sistema, CRUD inicial de maestros logísticos, módulo operativo de encomiendas y módulo frontend de rutas.
+- Frontend React con rutas, login demo, contexto de autenticación, layout operativo, dashboard, página de estado del sistema, CRUD inicial de maestros logísticos, módulo operativo de encomiendas, módulo frontend de rutas y módulo frontend de fieldops.
 - Backend de maestros logísticos iniciales con apps `parties`, `locations` y `fleet`.
 - Backend operativo de encomiendas con app `logistics`, modelos `Shipment`, `Package` y `TrackingEvent`, endpoints JWT y acción `change-status`.
 - Backend de rutas con app `routing`, modelos `Route`, `RouteStop` y `RouteShipment`, endpoints JWT, soft delete, acciones de cambio de estado, asignación de encomiendas, recálculo de resumen y reordenamiento manual de paradas.
 - Frontend de rutas con listados, formularios, detalle operativo, administración de paradas, asignación de encomiendas y acciones custom de ruta/parada.
 - Backend de fieldops con app `fieldops`, modelos `DeliveryProof` e `Incident`, endpoints JWT, archivos en desarrollo, soft delete y acciones custom de aceptación/rechazo/resolución/cancelación.
+- Frontend de fieldops con páginas `/operations/delivery-proofs` y `/operations/incidents`, tablas, formularios, paneles de detalle/revisión/resolución, filtros y soporte de links a adjuntos entregados por el backend.
 
-No incluye todavía frontend de evidencias/incidencias, app conductor, carga real desde cámara móvil, firma dibujada, documentos internos, optimización automática de rutas, mapas externos ni GPS en tiempo real. Esos módulos quedan pendientes para próximos prompts.
+No incluye todavía app conductor dedicada, carga real desde cámara móvil, firma dibujada, documentos internos, optimización automática de rutas, mapas externos, integración SII ni GPS en tiempo real. Esos módulos quedan pendientes para próximos prompts.

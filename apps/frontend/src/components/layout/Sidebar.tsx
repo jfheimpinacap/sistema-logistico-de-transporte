@@ -23,10 +23,11 @@ const operationItems = [
   { label: 'Bultos', path: '/operations/packages', icon: '▦' },
   { label: 'Tracking', path: '/operations/tracking', icon: '◷' },
   { label: 'Rutas', path: '/operations/routes', icon: '↝' },
+  { label: 'Evidencias', path: '/operations/delivery-proofs', icon: '☑' },
+  { label: 'Incidencias', path: '/operations/incidents', icon: '!' },
 ]
 
 const upcomingItems = [
-  { label: 'Incidencias', icon: '!' },
   { label: 'Documentos', icon: '□' },
 ]
 

@@ -1,0 +1,8 @@
+import { useState } from 'react'
+import type { Incident } from '../../types/fieldops'
+
+type Props = { incident: Incident; onResolve: (notes: string) => Promise<void>; onCancelIncident: (notes: string) => Promise<void>; onClose: () => void; isSubmitting?: boolean }
+export function IncidentResolutionPanel({ incident, onResolve, onCancelIncident, onClose, isSubmitting }: Props) {
+  const [resolutionNotes, setResolutionNotes] = useState(incident.resolution_notes ?? '')
+  return <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><div className="flex items-center justify-between"><h3 className="text-lg font-bold text-slate-900">Gestionar incidencia {incident.incident_code || `#${incident.id}`}</h3><button onClick={onClose} className="text-sm text-slate-500 hover:underline">Cerrar</button></div><label className="space-y-1 text-sm font-medium text-slate-700">Notas de resolución/cancelación<textarea value={resolutionNotes} onChange={(e: { target: HTMLTextAreaElement }) => setResolutionNotes(e.target.value)} rows={4} className="w-full rounded-xl border border-slate-200 px-3 py-2" /></label><div className="flex flex-wrap gap-2"><button disabled={isSubmitting} onClick={() => onResolve(resolutionNotes)} className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60">Resolver</button><button disabled={isSubmitting} onClick={() => onCancelIncident(resolutionNotes)} className="rounded-xl bg-rose-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60">Cancelar incidencia</button><button onClick={onClose} className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700">Cerrar</button></div></div>
+}
