@@ -1,15 +1,15 @@
 import { useAppRouter } from '../../routes/AppRoutes'
 
 const cards = [
-  { title: 'Encomiendas', description: 'Crear, filtrar, editar y cambiar estados de encomiendas.', path: '/operations/shipments', icon: '▣', available: true },
-  { title: 'Bultos', description: 'Administrar paquetes asociados a encomiendas.', path: '/operations/packages', icon: '▦', available: true },
-  { title: 'Tracking', description: 'Revisar el historial de eventos operativos.', path: '/operations/tracking', icon: '◷', available: true },
-  { title: 'Rutas', description: 'Planificar rutas, paradas y asignar encomiendas.', path: '/operations/routes', icon: '↝', available: true },
-  { title: 'Modo conductor', description: 'Operar rutas desde móvil: paradas, evidencias, incidencias y ubicación puntual.', path: '/driver', icon: '▣', available: true },
-  { title: 'Evidencias', description: 'Revisar, aceptar y rechazar pruebas de entrega.', path: '/operations/delivery-proofs', icon: '☑', available: true },
-  { title: 'Incidencias', description: 'Registrar, resolver y cancelar excepciones operativas.', path: '/operations/incidents', icon: '!', available: true },
-  { title: 'Documentos', description: 'Administrar documentos internos/provisorios, emisión interna y vista imprimible.', path: '/operations/documents', icon: '□', available: true },
-  { title: 'Reportes y exportaciones', description: 'Revisar métricas operativas y descargar CSV compatible con Excel.', path: '/reports', icon: '⇩', available: true },
+  { title: 'Encomiendas', description: 'Crear, filtrar, editar y cambiar estados de encomiendas.', path: '/operations/shipments', icon: '▣' },
+  { title: 'Bultos', description: 'Administrar paquetes asociados a encomiendas.', path: '/operations/packages', icon: '▦' },
+  { title: 'Tracking', description: 'Revisar el historial de eventos operativos.', path: '/operations/tracking', icon: '◷' },
+  { title: 'Rutas', description: 'Planificar rutas, paradas y asignar encomiendas.', path: '/operations/routes', icon: '↝' },
+  { title: 'Modo conductor', description: 'Operar rutas desde móvil: paradas, evidencias, incidencias y ubicación puntual.', path: '/driver', icon: '▣' },
+  { title: 'Evidencias', description: 'Revisar, aceptar y rechazar pruebas de entrega.', path: '/operations/delivery-proofs', icon: '☑' },
+  { title: 'Incidencias', description: 'Registrar, resolver y cancelar excepciones operativas.', path: '/operations/incidents', icon: '!' },
+  { title: 'Documentos', description: 'Administrar documentos internos/provisorios, emisión interna y vista imprimible.', path: '/operations/documents', icon: '□' },
+  { title: 'Reportes y exportaciones', description: 'Revisar métricas operativas y descargar CSV compatible con Excel.', path: '/reports', icon: '⇩' },
 ]
 
 export function OperationsHomePage() {
@@ -18,7 +18,7 @@ export function OperationsHomePage() {
   return (
     <div className="space-y-6">
       <section className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-        <span className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-sm font-semibold text-emerald-700">✓ Prompt 018 — Fase MVP operativa cerrada</span>
+        <span className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-sm font-semibold text-emerald-700">✓ Prompt 019 — MVP operativo listo para QA manual</span>
         <h2 className="mt-4 text-3xl font-bold tracking-tight text-slate-950">Módulo operativo de encomiendas</h2>
         <p className="mt-3 max-w-3xl text-slate-600">Administra encomiendas, bultos, tracking, rutas, evidencias, incidencias y documentos internos/provisorios desde el panel, usa el modo conductor para operación responsive en terreno y descarga CSV compatible con Excel desde reportes y listados clave. Offline, GPS en tiempo real, mapas y optimización quedan reservados para próximos prompts.</p>
       </section>
@@ -33,11 +33,7 @@ export function OperationsHomePage() {
               </div>
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-xl font-bold text-slate-600">{card.icon}</div>
             </div>
-            {card.available ? (
-              <button type="button" onClick={() => navigate(card.path!)} className="mt-5 rounded-xl bg-slate-950 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800">Abrir</button>
-            ) : (
-              <span className="mt-5 inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-slate-500">Próximamente</span>
-            )}
+            <button type="button" onClick={() => navigate(card.path)} className="mt-5 rounded-xl bg-slate-950 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800">Abrir</button>
           </article>
         ))}
       </section>

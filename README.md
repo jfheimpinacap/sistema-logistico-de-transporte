@@ -4,7 +4,7 @@ Sistema logístico tipo TMS liviano para controlar transporte de mercancías, en
 
 ## Estado actual
 
-**Prompt 018 — Exportación CSV en listados operativos y cierre de fase MVP**
+**Prompt 019 — QA funcional y pruebas manuales guiadas**
 
 El proyecto cuenta con:
 
@@ -30,8 +30,10 @@ El proyecto cuenta con:
 - Exportación CSV compatible con Excel para reportes de encomiendas, rutas, incidencias, documentos, rendimiento por conductor y uso por vehículo.
 - Exportación CSV compatible con Excel también en listados operativos clave: `/operations/shipments`, `/operations/routes`, `/operations/incidents` y `/operations/documents`.
 - Documento de cierre de fase MVP operativa en `docs/FASE_MVP_OPERATIVA.md`.
+- Documentación QA del MVP operativo con guía manual, checklist rápida y registro de bugs conocidos.
+- Pruebas smoke backend para healthcheck, login demo, endpoints protegidos clave y exportaciones CSV.
 
-> La exportación genera CSV compatible con Excel, no archivos XLSX reales. XLSX real, PDF real, gráficos con librerías externas, mapas, GPS en tiempo real, optimización automática, integración SII, facturación y contabilidad quedan para próximos prompts.
+> La Fase MVP Operativa está lista para prueba manual guiada. La exportación genera CSV compatible con Excel, no archivos XLSX reales. XLSX real, PDF real, gráficos con librerías externas, mapas, GPS en tiempo real, optimización automática, integración SII, facturación, contabilidad, modo offline y app móvil nativa quedan para próximos prompts.
 
 ## Stack técnico
 
@@ -76,7 +78,10 @@ sistema-logistico-de-transporte/
 │       ├── tsconfig.json
 │       └── vite.config.ts
 ├── docs/
-│   └── FASE_MVP_OPERATIVA.md
+│   ├── BUGS_CONOCIDOS.md
+│   ├── CHECKLIST_QA_RAPIDA.md
+│   ├── FASE_MVP_OPERATIVA.md
+│   └── QA_MVP_OPERATIVA.md
 ├── .env.example
 ├── .gitignore
 ├── README.md
@@ -158,14 +163,14 @@ Iniciar entorno de desarrollo local completo:
 py start.py dev
 ```
 
-Flujo sugerido para probar Prompt 018:
+Flujo sugerido para probar manualmente el MVP operativo (Prompt 019):
 
 ```bash
 py start.py prepare
 py start.py dev
 ```
 
-Luego abrir `/login`, ingresar con usuario demo `demo` y password `demo1234`, abrir `/operations` o `/reports`, aplicar filtros principales y descargar CSV desde los listados operativos o reportes. La descarga es CSV compatible con Excel, no XLSX real. Para el resumen del cierre MVP, revisar `docs/FASE_MVP_OPERATIVA.md`.
+Luego abrir `/login`, ingresar con usuario demo `demo` y password `demo1234`, abrir `/operations` o `/reports`, aplicar filtros principales y descargar CSV desde los listados operativos o reportes. La descarga es CSV compatible con Excel, no XLSX real. Para el resumen del cierre MVP y la prueba manual guiada, revisar `docs/FASE_MVP_OPERATIVA.md`, `docs/QA_MVP_OPERATIVA.md`, `docs/CHECKLIST_QA_RAPIDA.md` y `docs/BUGS_CONOCIDOS.md`.
 
 El comando sin argumentos asume `dev`. En Windows intenta abrir backend y frontend en terminales separadas.
 
@@ -201,10 +206,14 @@ El comando sin argumentos asume `dev`. En Windows intenta abrir backend y fronte
 - `GET /reports/drivers` — tabla de rendimiento por conductor, con exportación CSV compatible con Excel.
 - `GET /reports/vehicles` — tabla de uso por vehículo, con exportación CSV compatible con Excel.
 
-## Documentación de fase
+## Documentación de fase y QA
 
 - `docs/FASE_MVP_OPERATIVA.md` resume el alcance cerrado del MVP operativo, flujos cubiertos, rutas principales, comandos de prueba y límites explícitos para próximas fases.
+- `docs/QA_MVP_OPERATIVA.md` contiene la guía paso a paso para validar manualmente autenticación, maestros, operación, modo conductor, evidencias, incidencias, documentos, reportes, CSV y errores esperados.
+- `docs/CHECKLIST_QA_RAPIDA.md` entrega una lista breve de verificación para pasadas rápidas del MVP.
+- `docs/BUGS_CONOCIDOS.md` registra bugs bloqueantes o menores conocidos; al cierre del Prompt 019 no hay bugs bloqueantes detectados por la revisión automatizada disponible.
 - Los documentos logísticos del MVP son internos/provisorios: no emiten documentos tributarios SII reales ni guía de despacho electrónica real.
+- La Fase MVP Operativa ya está lista para prueba manual guiada siguiendo los documentos QA.
 
 ## Endpoints backend disponibles
 
@@ -569,6 +578,10 @@ python apps/backend/manage.py seed_demo_operations
 python apps/backend/manage.py seed_demo_routes
 python apps/backend/manage.py seed_demo_fieldops
 python apps/backend/manage.py seed_demo_documents
+python apps/backend/manage.py test
+npm install --prefix apps/frontend
+npm run build --prefix apps/frontend
+npm run lint --if-present --prefix apps/frontend
 git diff --check
 ```
 
@@ -585,12 +598,15 @@ Incluye únicamente:
 - Backend de maestros logísticos iniciales con apps `parties`, `locations` y `fleet`.
 - Backend operativo de encomiendas con app `logistics`, modelos `Shipment`, `Package` y `TrackingEvent`, endpoints JWT y acción `change-status`.
 - Backend de rutas con app `routing`, modelos `Route`, `RouteStop` y `RouteShipment`, endpoints JWT, soft delete, acciones de cambio de estado, asignación de encomiendas, recálculo de resumen y reordenamiento manual de paradas.
-- Frontend de rutas con listados, formularios, detalle operativo, administración de paradas, asignación de encomiendas y acciones custom de ruta/parada.
+- Frontend de rutas con listados, formularios, detalle operativo, administración de paradas, asignación de encomiendas, acciones custom de ruta/parada y exportación CSV compatible con Excel.
 - Backend de fieldops con app `fieldops`, modelos `DeliveryProof` e `Incident`, endpoints JWT, archivos en desarrollo, soft delete y acciones custom de aceptación/rechazo/resolución/cancelación.
 - Backend de documentos internos con app `documents`, modelos `LogisticsDocument` y `LogisticsDocumentLine`, endpoints JWT, soft delete, generación desde rutas/encomiendas, acciones de emisión/anulación/archivo y datos JSON para impresión futura.
 - Backend de reportes operativos con app `reports`, servicios de agregación, endpoints JWT de solo lectura y filtros manuales sin `django-filter`.
 - Frontend de fieldops con páginas `/operations/delivery-proofs` y `/operations/incidents`, tablas, formularios, paneles de detalle/revisión/resolución, filtros y soporte de links a adjuntos entregados por el backend.
 - Frontend de documentos internos con página `/operations/documents`, vista `/operations/documents/print`, servicio autenticado, tipos TypeScript, tablas, formularios, paneles de acciones/generación/detalle/líneas y advertencias SII visibles.
 - Modo conductor responsive en `/driver` con selección de ruta, resumen, acciones de inicio/completado, paradas ordenadas, cambio de estado de parada, encomiendas asociadas, evidencias, incidencias, archivos y geolocalización puntual opcional.
+- Frontend de reportes operativos en `/reports` y rutas específicas, con métricas, filtros, manejo amigable de errores y exportación CSV compatible con Excel.
+- Documentación QA manual y checklist de validación de la Fase MVP Operativa.
+- Smoke tests backend básicos para validar disponibilidad del MVP operativo.
 
-No incluye todavía frontend de reportes, gráficos, exportación Excel/PDF, app móvil nativa, modo offline, sincronización offline, firma dibujada, PDF real, firma electrónica avanzada, optimización automática de rutas, mapas externos, integración SII ni GPS en tiempo real. Esos módulos quedan pendientes para próximos prompts.
+No incluye todavía gráficos con librerías externas, exportación XLSX real, PDF real, app móvil nativa, modo offline, sincronización offline, firma dibujada, firma electrónica avanzada, optimización automática de rutas, mapas externos, integración SII, facturación, contabilidad ni GPS en tiempo real. Esos módulos quedan pendientes para próximos prompts.
