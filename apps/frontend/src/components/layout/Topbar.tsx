@@ -5,10 +5,10 @@ export function Topbar() {
   const displayName = user?.first_name || user?.username || 'Operador'
 
   return (
-    <header className="flex h-16 items-center justify-between border-b border-slate-200 bg-white/80 px-6 backdrop-blur">
+    <header className="flex min-h-16 flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-white/80 px-3 py-3 backdrop-blur sm:px-6">
       <div>
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Panel operativo base</p>
-        <p className="text-sm text-slate-600">Frontend conectado al backend Django en modo MVP.</p>
+        <p className="hidden text-sm text-slate-600 sm:block">Frontend conectado al backend Django en modo MVP.</p>
       </div>
 
       <div className="flex items-center gap-3">

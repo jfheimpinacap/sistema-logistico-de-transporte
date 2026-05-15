@@ -2,6 +2,7 @@ import { useAppRouter } from '../../routes/AppRoutes'
 
 const mainItems = [
   { label: 'Dashboard', path: '/', icon: '⌂' },
+  { label: 'Modo conductor', path: '/driver', icon: '▣' },
   { label: 'Estado del sistema', path: '/health', icon: '◉' },
 ]
 
@@ -64,7 +65,7 @@ export function Sidebar() {
   const { navigate, path } = useAppRouter()
 
   return (
-    <aside className="flex h-screen w-72 flex-col border-r border-slate-200 bg-white/90 px-4 py-5 shadow-sm backdrop-blur">
+    <aside className="hidden h-screen w-72 flex-col lg:flex border-r border-slate-200 bg-white/90 px-4 py-5 shadow-sm backdrop-blur">
       <div className="mb-6 flex items-center gap-3 px-2">
         <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-900 text-lg font-bold text-white shadow-sm">
           SL

@@ -20,6 +20,7 @@ const mvpStatus = [
   'Prompt 009: Frontend de rutas, paradas y asignación',
   'Prompt 010: Backend de evidencias e incidencias',
   'Prompt 011: Frontend de evidencias e incidencias operativas',
+  'Prompt 012: Vista conductor responsive MVP',
 ]
 
 export function DashboardPage() {
@@ -76,15 +77,16 @@ export function DashboardPage() {
       <section className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
         <div className="max-w-3xl">
           <span className="inline-flex items-center gap-2 rounded-full bg-cyan-50 px-3 py-1 text-sm font-semibold text-cyan-700">
-            ◷ Prompt 011 — Frontend de evidencias e incidencias operativas
+            ▣ Prompt 012 — Vista conductor responsive MVP
           </span>
           <h2 className="mt-4 text-3xl font-bold tracking-tight text-slate-950">Panel de control logístico</h2>
           <p className="mt-3 text-slate-600">
-            El módulo operativo ya permite administrar encomiendas, bultos, timeline de tracking, rutas reales, evidencias de entrega e incidencias operativas. Los maestros logísticos siguen disponibles para alimentar los formularios.
+            El módulo operativo ya permite administrar encomiendas, bultos, tracking, rutas, evidencias e incidencias; además incluye un modo conductor responsive para operar rutas desde pantallas pequeñas.
           </p>
           {metricsWarning ? <p className="mt-4 rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-800">{metricsWarning}</p> : null}
           <div className="mt-5 flex flex-wrap gap-3">
-            <button type="button" onClick={() => navigate('/operations')} className="rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800">Abrir operación</button>
+            <button type="button" onClick={() => navigate('/driver')} className="rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800">Abrir modo conductor</button>
+            <button type="button" onClick={() => navigate('/operations')} className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">Abrir operación</button>
             <button type="button" onClick={() => navigate('/masters')} className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">Abrir maestros</button>
           </div>
         </div>

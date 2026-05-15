@@ -4,7 +4,7 @@ Sistema logístico tipo TMS liviano para controlar transporte de mercancías, en
 
 ## Estado actual
 
-**Prompt 011 — Frontend de evidencias de entrega e incidencias operativas**
+**Prompt 012 — Vista conductor responsive MVP**
 
 El proyecto cuenta con:
 
@@ -22,8 +22,9 @@ El proyecto cuenta con:
 - Frontend protegido para administrar rutas, paradas, asignación de encomiendas, cambio de estados, recálculo de resumen y reordenamiento manual de paradas.
 - Backend de evidencias de entrega e incidencias operativas con archivos en `media/`, acciones de revisión/resolución y tracking asociado.
 - Frontend protegido para administrar evidencias de entrega e incidencias operativas, incluyendo formularios con archivos opcionales, filtros, detalle y acciones custom.
+- Vista responsive de modo conductor en `/driver` para seleccionar rutas, iniciar/completar ruta, gestionar paradas, registrar evidencias/incidencias, adjuntar archivos y capturar ubicación puntual opcional.
 
-> App conductor, documentos internos, optimización automática, mapas externos, cámara móvil, firma dibujada y GPS en tiempo real quedan para próximos prompts.
+> Modo offline, sincronización offline, firma dibujada, GPS en tiempo real, mapas externos, optimización automática, documentos internos e integración SII quedan para próximos prompts.
 
 ## Stack técnico
 
@@ -152,6 +153,7 @@ El comando sin argumentos asume `dev`. En Windows intenta abrir backend y fronte
 - `GET /login` — pantalla pública de login demo.
 - `GET /` — dashboard operativo base, protegido por autenticación.
 - `GET /health` — estado del sistema conectado a `GET /api/health/`, protegido por autenticación.
+- `GET /driver` — modo conductor responsive para operar rutas, paradas, evidencias e incidencias desde móvil.
 - `GET /masters` — índice de maestros logísticos, protegido por autenticación.
 - `GET /masters/customers` — CRUD frontend de clientes.
 - `GET /masters/contacts` — CRUD frontend de contactos.
@@ -292,7 +294,7 @@ curl -X POST http://localhost:8002/api/incidents/1/resolve/ \
   -d '{"resolution_notes":"Se reprograma entrega para mañana"}'
 ```
 
-> App conductor, documentos internos, GPS, cámara móvil, firma dibujada, optimización automática e integración con mapas externos quedan para próximos prompts.
+> Offline, sincronización offline, firma dibujada, GPS en tiempo real, mapas externos, optimización automática, documentos internos e integración SII quedan para próximos prompts.
 
 Ejemplo de cambio de estado:
 
@@ -304,7 +306,7 @@ curl -X POST http://localhost:8002/api/shipments/1/change-status/ \
 ```
 
 
-## Flujo de prueba del Prompt 011
+## Flujo de prueba del Prompt 012
 
 ```bash
 py start.py prepare
@@ -314,6 +316,8 @@ py start.py dev
 Rutas principales de prueba:
 
 - `/login`
+- `/driver`
+- `/operations/routes`
 - `/operations/delivery-proofs`
 - `/operations/incidents`
 
@@ -322,7 +326,30 @@ Luego abre el frontend en `http://localhost:5175`, entra a `/login` con:
 - Usuario demo: `demo`
 - Password: `demo1234`
 
-Después abre `/operations/delivery-proofs` para listar, crear/editar, revisar detalle, aceptar/rechazar o desactivar evidencias. Luego abre `/operations/incidents` para listar, crear/editar, revisar detalle, resolver/cancelar o desactivar incidencias. Si faltan datos base, entra primero a `/masters`, `/operations/shipments` o `/operations/routes` para crear encomiendas, rutas, conductores o vehículos.
+Flujo sugerido:
+
+1. Ejecuta `py start.py prepare` para crear usuario y datos demo.
+2. Ejecuta `py start.py dev` para iniciar backend y frontend.
+3. Abre `/login` e ingresa con `demo` / `demo1234`.
+4. Abre `/driver`.
+5. Selecciona una ruta demo planificada, asignada, cargada o en curso.
+6. Inicia la ruta.
+7. Marca llegada en una parada.
+8. Selecciona una encomienda de la parada y crea una evidencia o incidencia con archivo/ubicación opcional.
+
+Si no aparecen rutas disponibles, entra primero a Operación logística > Rutas (`/operations/routes`) para crear o asignar rutas demo.
+
+### Endpoints usados por modo conductor
+
+La vista `/driver` consume estos endpoints protegidos:
+
+- `GET /api/routes/`
+- `GET /api/route-stops/`
+- `GET /api/route-shipments/`
+- `POST /api/routes/{id}/change-status/`
+- `POST /api/route-stops/{id}/change-status/`
+- `POST /api/delivery-proofs/`
+- `POST /api/incidents/`
 
 ### Endpoints usados por el frontend operativo
 
@@ -432,5 +459,6 @@ Incluye únicamente:
 - Frontend de rutas con listados, formularios, detalle operativo, administración de paradas, asignación de encomiendas y acciones custom de ruta/parada.
 - Backend de fieldops con app `fieldops`, modelos `DeliveryProof` e `Incident`, endpoints JWT, archivos en desarrollo, soft delete y acciones custom de aceptación/rechazo/resolución/cancelación.
 - Frontend de fieldops con páginas `/operations/delivery-proofs` y `/operations/incidents`, tablas, formularios, paneles de detalle/revisión/resolución, filtros y soporte de links a adjuntos entregados por el backend.
+- Modo conductor responsive en `/driver` con selección de ruta, resumen, acciones de inicio/completado, paradas ordenadas, cambio de estado de parada, encomiendas asociadas, evidencias, incidencias, archivos y geolocalización puntual opcional.
 
-No incluye todavía app conductor dedicada, carga real desde cámara móvil, firma dibujada, documentos internos, optimización automática de rutas, mapas externos, integración SII ni GPS en tiempo real. Esos módulos quedan pendientes para próximos prompts.
+No incluye todavía app móvil nativa, modo offline, sincronización offline, firma dibujada, documentos internos, optimización automática de rutas, mapas externos, integración SII ni GPS en tiempo real. Esos módulos quedan pendientes para próximos prompts.
