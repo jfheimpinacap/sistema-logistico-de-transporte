@@ -4,7 +4,7 @@ Sistema logístico tipo TMS liviano para controlar transporte de mercancías, en
 
 ## Estado actual
 
-**Prompt 012 — Vista conductor responsive MVP**
+**Prompt 013 — Backend de documentos internos logísticos**
 
 El proyecto cuenta con:
 
@@ -15,7 +15,7 @@ El proyecto cuenta con:
 - Frontend operativo base con login demo, layout, dashboard inicial y página de health.
 - APIs REST autenticadas para maestros logísticos iniciales: clientes, contactos, zonas, direcciones, bodegas, tipos de vehículo, vehículos y conductores.
 - CRUD frontend protegido para administrar clientes, contactos, zonas, direcciones, bodegas, tipos de vehículo, vehículos y conductores.
-- Seeds idempotentes para usuario demo, datos maestros logísticos demo, operaciones demo, rutas demo y fieldops demo.
+- Seeds idempotentes para usuario demo, datos maestros logísticos demo, operaciones demo, rutas demo, fieldops demo y documentos internos demo.
 - Backend operativo para encomiendas, bultos y eventos de tracking con cambio de estado auditado.
 - Frontend operativo protegido para administrar encomiendas, bultos, timeline de tracking y cambio manual de estado.
 - Backend de rutas reales con paradas ordenadas, asignación de conductor/vehículo y vinculación de encomiendas a rutas.
@@ -23,8 +23,9 @@ El proyecto cuenta con:
 - Backend de evidencias de entrega e incidencias operativas con archivos en `media/`, acciones de revisión/resolución y tracking asociado.
 - Frontend protegido para administrar evidencias de entrega e incidencias operativas, incluyendo formularios con archivos opcionales, filtros, detalle y acciones custom.
 - Vista responsive de modo conductor en `/driver` para seleccionar rutas, iniciar/completar ruta, gestionar paradas, registrar evidencias/incidencias, adjuntar archivos y capturar ubicación puntual opcional.
+- Backend de documentos internos logísticos para manifiestos de carga, hojas de ruta, notas internas de traslado y comprobantes internos de entrega.
 
-> Modo offline, sincronización offline, firma dibujada, GPS en tiempo real, mapas externos, optimización automática, documentos internos e integración SII quedan para próximos prompts.
+> Modo offline, sincronización offline, firma dibujada, GPS en tiempo real, mapas externos, optimización automática, frontend de documentos e integración SII quedan para próximos prompts.
 
 ## Stack técnico
 
@@ -46,6 +47,7 @@ sistema-logistico-de-transporte/
 │   │   ├── apps/
 │   │   │   ├── accounts/
 │   │   │   ├── core/
+│   │   │   ├── documents/
 │   │   │   ├── fieldops/
 │   │   │   ├── fleet/
 │   │   │   ├── locations/
@@ -124,6 +126,7 @@ python apps/backend/manage.py seed_demo_logistics
 python apps/backend/manage.py seed_demo_operations
 python apps/backend/manage.py seed_demo_routes
 python apps/backend/manage.py seed_demo_fieldops
+python apps/backend/manage.py seed_demo_documents
 ```
 
 ## Ejecutar el proyecto
@@ -285,6 +288,36 @@ Comando demo idempotente:
 python apps/backend/manage.py seed_demo_fieldops
 ```
 
+### Documentos internos logísticos protegidos con JWT
+
+Todos los endpoints siguientes requieren header `Authorization: Bearer <access_token>` y permiten CRUD básico con soft delete (`is_active=false`). Este módulo genera documentos internos/provisorios de operación logística y **NO emite documentos tributarios reales del SII**.
+
+- `/api/documents/` — documentos internos. Soporta `search`, `document_type`, `status`, `customer`, `route`, `shipment`, `warehouse`, `driver`, `vehicle`, `issue_date` e `is_active`.
+- `/api/document-lines/` — líneas/detalles de documentos. Soporta `search`, `document`, `shipment`, `package`, `route_stop` e `is_active`.
+- `/api/documents/{id}/issue/` — acción `POST` para emitir internamente un documento y registrar tracking si está asociado a una encomienda.
+- `/api/documents/{id}/cancel/` — acción `POST` para anular internamente un documento y registrar tracking si está asociado a una encomienda.
+- `/api/documents/{id}/archive/` — acción `POST` para archivar internamente un documento.
+- `/api/documents/generate-from-route/` — acción `POST` para generar manifiesto, hoja de ruta o nota interna de traslado desde una ruta.
+- `/api/documents/generate-from-shipment/` — acción `POST` para generar comprobante interno de entrega o nota interna de traslado desde una encomienda.
+- `/api/documents/{id}/print-data/` — acción `GET` que entrega JSON listo para una vista imprimible futura. No genera PDF real.
+
+Comando demo idempotente:
+
+```bash
+python apps/backend/manage.py seed_demo_documents
+```
+
+Ejemplo de generación desde ruta:
+
+```bash
+curl -X POST http://localhost:8002/api/documents/generate-from-route/ \
+  -H "Authorization: Bearer <access_token>" \
+  -H "Content-Type: application/json" \
+  -d '{"route_id":1,"document_type":"route_manifest"}'
+```
+
+> El frontend de documentos queda pendiente para Prompt 014. No se implementan facturas, notas de crédito, notas de débito, guía de despacho electrónica real, integración SII, PDF real ni firma electrónica avanzada.
+
 Ejemplo de resolución de incidencia:
 
 ```bash
@@ -294,7 +327,7 @@ curl -X POST http://localhost:8002/api/incidents/1/resolve/ \
   -d '{"resolution_notes":"Se reprograma entrega para mañana"}'
 ```
 
-> Offline, sincronización offline, firma dibujada, GPS en tiempo real, mapas externos, optimización automática, documentos internos e integración SII quedan para próximos prompts.
+> Offline, sincronización offline, firma dibujada, GPS en tiempo real, mapas externos, optimización automática, frontend de documentos e integración SII quedan para próximos prompts.
 
 Ejemplo de cambio de estado:
 
@@ -306,7 +339,7 @@ curl -X POST http://localhost:8002/api/shipments/1/change-status/ \
 ```
 
 
-## Flujo de prueba del Prompt 012
+## Flujo de prueba del Prompt 013
 
 ```bash
 py start.py prepare
@@ -440,6 +473,7 @@ python apps/backend/manage.py seed_demo_logistics
 python apps/backend/manage.py seed_demo_operations
 python apps/backend/manage.py seed_demo_routes
 python apps/backend/manage.py seed_demo_fieldops
+python apps/backend/manage.py seed_demo_documents
 git diff --check
 ```
 
@@ -458,7 +492,8 @@ Incluye únicamente:
 - Backend de rutas con app `routing`, modelos `Route`, `RouteStop` y `RouteShipment`, endpoints JWT, soft delete, acciones de cambio de estado, asignación de encomiendas, recálculo de resumen y reordenamiento manual de paradas.
 - Frontend de rutas con listados, formularios, detalle operativo, administración de paradas, asignación de encomiendas y acciones custom de ruta/parada.
 - Backend de fieldops con app `fieldops`, modelos `DeliveryProof` e `Incident`, endpoints JWT, archivos en desarrollo, soft delete y acciones custom de aceptación/rechazo/resolución/cancelación.
+- Backend de documentos internos con app `documents`, modelos `LogisticsDocument` y `LogisticsDocumentLine`, endpoints JWT, soft delete, generación desde rutas/encomiendas, acciones de emisión/anulación/archivo y datos JSON para impresión futura.
 - Frontend de fieldops con páginas `/operations/delivery-proofs` y `/operations/incidents`, tablas, formularios, paneles de detalle/revisión/resolución, filtros y soporte de links a adjuntos entregados por el backend.
 - Modo conductor responsive en `/driver` con selección de ruta, resumen, acciones de inicio/completado, paradas ordenadas, cambio de estado de parada, encomiendas asociadas, evidencias, incidencias, archivos y geolocalización puntual opcional.
 
-No incluye todavía app móvil nativa, modo offline, sincronización offline, firma dibujada, documentos internos, optimización automática de rutas, mapas externos, integración SII ni GPS en tiempo real. Esos módulos quedan pendientes para próximos prompts.
+No incluye todavía app móvil nativa, modo offline, sincronización offline, firma dibujada, frontend de documentos, PDF real, optimización automática de rutas, mapas externos, integración SII ni GPS en tiempo real. Esos módulos quedan pendientes para próximos prompts.
