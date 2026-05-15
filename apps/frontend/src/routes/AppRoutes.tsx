@@ -15,6 +15,8 @@ import { VehicleTypesPage } from '../pages/masters/VehicleTypesPage'
 import { VehiclesPage } from '../pages/masters/VehiclesPage'
 import { WarehousesPage } from '../pages/masters/WarehousesPage'
 import { ZonesPage } from '../pages/masters/ZonesPage'
+import { DeliveryProofsPage } from '../pages/fieldops/DeliveryProofsPage'
+import { IncidentsPage } from '../pages/fieldops/IncidentsPage'
 import { OperationsHomePage } from '../pages/operations/OperationsHomePage'
 import { PackagesPage } from '../pages/operations/PackagesPage'
 import { ShipmentsPage } from '../pages/operations/ShipmentsPage'
@@ -107,6 +109,10 @@ function renderProtectedPage(path: string) {
       return <TrackingEventsPage />
     case '/operations/routes':
       return <RoutesPage />
+    case '/operations/delivery-proofs':
+      return <DeliveryProofsPage />
+    case '/operations/incidents':
+      return <IncidentsPage />
     default:
       return <NotFoundPage />
   }

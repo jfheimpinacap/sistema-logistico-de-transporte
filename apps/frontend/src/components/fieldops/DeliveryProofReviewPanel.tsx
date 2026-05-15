@@ -1,0 +1,8 @@
+import { useState } from 'react'
+import type { DeliveryProof } from '../../types/fieldops'
+
+type Props = { proof: DeliveryProof; onAccept: (notes: string) => Promise<void>; onReject: (notes: string) => Promise<void>; onCancel: () => void; isSubmitting?: boolean }
+export function DeliveryProofReviewPanel({ proof, onAccept, onReject, onCancel, isSubmitting }: Props) {
+  const [reviewNotes, setReviewNotes] = useState(proof.review_notes ?? '')
+  return <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><div className="flex items-center justify-between"><h3 className="text-lg font-bold text-slate-900">Revisar evidencia {proof.shipment_tracking_code ?? `#${proof.id}`}</h3><button onClick={onCancel} className="text-sm text-slate-500 hover:underline">Cerrar</button></div><label className="space-y-1 text-sm font-medium text-slate-700">Notas de revisión<textarea value={reviewNotes} onChange={(e: { target: HTMLTextAreaElement }) => setReviewNotes(e.target.value)} rows={4} className="w-full rounded-xl border border-slate-200 px-3 py-2" /></label><div className="flex flex-wrap gap-2"><button disabled={isSubmitting} onClick={() => onAccept(reviewNotes)} className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60">Aceptar</button><button disabled={isSubmitting} onClick={() => onReject(reviewNotes)} className="rounded-xl bg-rose-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60">Rechazar</button><button onClick={onCancel} className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700">Cancelar</button></div></div>
+}
