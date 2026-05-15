@@ -40,9 +40,6 @@ const operationItems = [
   { label: 'Documentos', path: '/operations/documents', icon: '□' },
 ]
 
-const upcomingItems: { label: string; icon: string }[] = [
-]
-
 type NavigationItem = {
   label: string
   path: string
@@ -118,12 +115,6 @@ export function Sidebar() {
           <div className="mt-3 space-y-1">
             {operationItems.map((item) => (
               <NavigationButton key={item.path} item={item} isActive={path === item.path} onClick={() => navigate(item.path)} isCompact />
-            ))}
-            {upcomingItems.map((item) => (
-              <div key={item.label} className="flex cursor-not-allowed items-center justify-between rounded-xl px-3 py-2 text-sm text-slate-400" title="Próximamente">
-                <span className="flex items-center gap-3"><span className="flex h-5 w-5 items-center justify-center text-base">{item.icon}</span>{item.label}</span>
-                <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500">Próximamente</span>
-              </div>
             ))}
           </div>
         </div>
