@@ -130,6 +130,15 @@ def prepare() -> int:
                     "Verifica dependencias, migraciones o disponibilidad del comando."
                 )
             exit_code = exit_code or routes_seed_code
+
+            print("[PREPARE] Creando o actualizando evidencias e incidencias demo...")
+            fieldops_seed_code = run_manage(["seed_demo_fieldops"])
+            if fieldops_seed_code != 0:
+                print(
+                    "[WARN] No se pudieron sembrar evidencias/incidencias demo. "
+                    "Verifica dependencias, migraciones o disponibilidad del comando."
+                )
+            exit_code = exit_code or fieldops_seed_code
     else:
         print("[WARN] Se omiten migraciones y usuario demo porque el backend no quedó listo.")
 

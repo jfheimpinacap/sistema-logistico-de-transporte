@@ -4,7 +4,7 @@ Sistema logístico tipo TMS liviano para controlar transporte de mercancías, en
 
 ## Estado actual
 
-**Prompt 009 — Frontend de rutas, paradas y asignación de encomiendas**
+**Prompt 010 — Backend de evidencias de entrega e incidencias operativas**
 
 El proyecto cuenta con:
 
@@ -15,13 +15,14 @@ El proyecto cuenta con:
 - Frontend operativo base con login demo, layout, dashboard inicial y página de health.
 - APIs REST autenticadas para maestros logísticos iniciales: clientes, contactos, zonas, direcciones, bodegas, tipos de vehículo, vehículos y conductores.
 - CRUD frontend protegido para administrar clientes, contactos, zonas, direcciones, bodegas, tipos de vehículo, vehículos y conductores.
-- Seeds idempotentes para usuario demo, datos maestros logísticos demo, operaciones demo y rutas demo.
+- Seeds idempotentes para usuario demo, datos maestros logísticos demo, operaciones demo, rutas demo y fieldops demo.
 - Backend operativo para encomiendas, bultos y eventos de tracking con cambio de estado auditado.
 - Frontend operativo protegido para administrar encomiendas, bultos, timeline de tracking y cambio manual de estado.
 - Backend de rutas reales con paradas ordenadas, asignación de conductor/vehículo y vinculación de encomiendas a rutas.
 - Frontend protegido para administrar rutas, paradas, asignación de encomiendas, cambio de estados, recálculo de resumen y reordenamiento manual de paradas.
+- Backend de evidencias de entrega e incidencias operativas con archivos en `media/`, acciones de revisión/resolución y tracking asociado.
 
-> App conductor, evidencias, incidencias avanzadas, documentos internos, optimización automática, mapas externos y GPS en tiempo real quedan para próximos prompts.
+> Frontend de evidencias/incidencias, app conductor, documentos internos, optimización automática, mapas externos y GPS en tiempo real quedan para próximos prompts.
 
 ## Stack técnico
 
@@ -43,6 +44,7 @@ sistema-logistico-de-transporte/
 │   │   ├── apps/
 │   │   │   ├── accounts/
 │   │   │   ├── core/
+│   │   │   ├── fieldops/
 │   │   │   ├── fleet/
 │   │   │   ├── locations/
 │   │   │   ├── logistics/
@@ -100,6 +102,8 @@ Variables principales soportadas:
 - `DJANGO_DEBUG`
 - `DJANGO_ALLOWED_HOSTS`
 - `CORS_ALLOWED_ORIGINS`
+- `MEDIA_URL`
+- `MEDIA_ROOT`
 
 ## Preparar el entorno
 
@@ -117,6 +121,7 @@ python apps/backend/manage.py seed_demo_user
 python apps/backend/manage.py seed_demo_logistics
 python apps/backend/manage.py seed_demo_operations
 python apps/backend/manage.py seed_demo_routes
+python apps/backend/manage.py seed_demo_fieldops
 ```
 
 ## Ejecutar el proyecto
@@ -258,7 +263,35 @@ curl -X POST http://localhost:8002/api/routes/1/assign-shipments/ \
   -d '{"shipment_ids":[1,2],"stop_id":1}'
 ```
 
-> App conductor, evidencias, incidencias avanzadas, documentos internos, GPS, optimización automática e integración con mapas externos quedan para próximos prompts.
+### Evidencias e incidencias protegidas con JWT
+
+Todos los endpoints siguientes requieren header `Authorization: Bearer <access_token>` y permiten CRUD básico con soft delete (`is_active=false`):
+
+- `/api/delivery-proofs/` — evidencias de entrega, retiro, devolución o entrega fallida. Soporta `search`, `shipment`, `package`, `route`, `route_stop`, `route_shipment`, `proof_type`, `status` e `is_active`.
+- `/api/incidents/` — incidencias operativas en terreno. Soporta `search`, `shipment`, `package`, `route`, `route_stop`, `route_shipment`, `driver`, `vehicle`, `category`, `severity`, `status` e `is_active`.
+- `/api/delivery-proofs/{id}/accept/` — acción `POST` para aceptar evidencia; si es `delivery` o `failed_delivery`, actualiza la encomienda/asignación y registra tracking.
+- `/api/delivery-proofs/{id}/reject/` — acción `POST` para rechazar evidencia y registrar nota de tracking.
+- `/api/incidents/{id}/resolve/` — acción `POST` para resolver una incidencia con notas y tracking asociado.
+- `/api/incidents/{id}/cancel/` — acción `POST` para cancelar una incidencia con notas y tracking asociado.
+
+Comando demo idempotente:
+
+```bash
+python apps/backend/manage.py seed_demo_fieldops
+```
+
+Ejemplo de resolución de incidencia:
+
+```bash
+curl -X POST http://localhost:8002/api/incidents/1/resolve/ \
+  -H "Authorization: Bearer <access_token>" \
+  -H "Content-Type: application/json" \
+  -d '{"resolution_notes":"Se reprograma entrega para mañana"}'
+```
+
+> Frontend de evidencias/incidencias y app conductor quedan para próximos prompts.
+
+> App conductor, documentos internos, GPS, optimización automática e integración con mapas externos quedan para próximos prompts.
 
 Ejemplo de cambio de estado:
 
@@ -270,7 +303,7 @@ curl -X POST http://localhost:8002/api/shipments/1/change-status/ \
 ```
 
 
-## Flujo de prueba del Prompt 009
+## Flujo de prueba del Prompt 010
 
 ```bash
 py start.py prepare
@@ -282,7 +315,7 @@ Luego abre el frontend en `http://localhost:5175`, entra a `/login` con:
 - Usuario demo: `demo`
 - Password: `demo1234`
 
-Después abre `/operations/routes` para listar rutas, crear/editar registros, revisar detalle, administrar paradas, asignar encomiendas, cambiar estados, recalcular resumen y reordenar paradas. Si faltan datos base, entra primero a `/masters` para crear bodegas, conductores, vehículos o direcciones.
+Después abre `/operations/routes` para listar rutas, crear/editar registros, revisar detalle, administrar paradas, asignar encomiendas, cambiar estados, recalcular resumen y reordenar paradas. Las evidencias/incidencias ya tienen backend y quedan sin pantalla frontend hasta el Prompt 011. Si faltan datos base, entra primero a `/masters` para crear bodegas, conductores, vehículos o direcciones.
 
 ### Endpoints usados por el frontend operativo
 
@@ -300,6 +333,12 @@ El frontend operativo consume estos endpoints protegidos:
 - `POST /api/routes/{id}/assign-shipments/`
 - `POST /api/routes/{id}/reorder-stops/`
 - `POST /api/route-stops/{id}/change-status/`
+- `GET|POST /api/delivery-proofs/` y `GET|PATCH|DELETE /api/delivery-proofs/{id}/`
+- `POST /api/delivery-proofs/{id}/accept/`
+- `POST /api/delivery-proofs/{id}/reject/`
+- `GET|POST /api/incidents/` y `GET|PATCH|DELETE /api/incidents/{id}/`
+- `POST /api/incidents/{id}/resolve/`
+- `POST /api/incidents/{id}/cancel/`
 
 
 ## Credenciales demo
@@ -336,6 +375,14 @@ python apps/backend/manage.py seed_demo_routes
 
 Este seed crea 2 rutas demo, 3 paradas y asignaciones de encomiendas con evento de tracking `Asignada a ruta`.
 
+Las evidencias e incidencias demo se crean de forma idempotente con:
+
+```bash
+python apps/backend/manage.py seed_demo_fieldops
+```
+
+Este seed crea 2 evidencias demo, 3 incidencias demo y eventos de tracking tipo `exception` cuando la incidencia está asociada a una encomienda.
+
 El seed de maestros crea datos mínimos de ejemplo:
 
 - 2 zonas.
@@ -358,6 +405,8 @@ python apps/backend/manage.py seed_demo_user
 python apps/backend/manage.py seed_demo_logistics
 python apps/backend/manage.py seed_demo_operations
 python apps/backend/manage.py seed_demo_routes
+python apps/backend/manage.py seed_demo_fieldops
+git diff --check
 ```
 
 ## Alcance actual
@@ -374,5 +423,6 @@ Incluye únicamente:
 - Backend operativo de encomiendas con app `logistics`, modelos `Shipment`, `Package` y `TrackingEvent`, endpoints JWT y acción `change-status`.
 - Backend de rutas con app `routing`, modelos `Route`, `RouteStop` y `RouteShipment`, endpoints JWT, soft delete, acciones de cambio de estado, asignación de encomiendas, recálculo de resumen y reordenamiento manual de paradas.
 - Frontend de rutas con listados, formularios, detalle operativo, administración de paradas, asignación de encomiendas y acciones custom de ruta/parada.
+- Backend de fieldops con app `fieldops`, modelos `DeliveryProof` e `Incident`, endpoints JWT, archivos en desarrollo, soft delete y acciones custom de aceptación/rechazo/resolución/cancelación.
 
-No incluye todavía app conductor, evidencias de entrega, fotos, firma digital, incidencias avanzadas, documentos internos, optimización automática de rutas, mapas externos ni GPS en tiempo real. Esos módulos quedan pendientes para próximos prompts.
+No incluye todavía frontend de evidencias/incidencias, app conductor, carga real desde cámara móvil, firma dibujada, documentos internos, optimización automática de rutas, mapas externos ni GPS en tiempo real. Esos módulos quedan pendientes para próximos prompts.
