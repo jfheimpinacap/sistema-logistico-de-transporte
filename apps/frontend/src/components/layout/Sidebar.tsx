@@ -26,10 +26,10 @@ const operationItems = [
   { label: 'Rutas', path: '/operations/routes', icon: '↝' },
   { label: 'Evidencias', path: '/operations/delivery-proofs', icon: '☑' },
   { label: 'Incidencias', path: '/operations/incidents', icon: '!' },
+  { label: 'Documentos', path: '/operations/documents', icon: '□' },
 ]
 
-const upcomingItems = [
-  { label: 'Documentos', icon: '□' },
+const upcomingItems: { label: string; icon: string }[] = [
 ]
 
 type NavigationItem = {
