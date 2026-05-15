@@ -148,6 +148,15 @@ def prepare() -> int:
                     "Verifica dependencias, migraciones o disponibilidad del comando."
                 )
             exit_code = exit_code or documents_seed_code
+
+            print("[PREPARE] Creando o actualizando coordenadas geográficas demo...")
+            geo_seed_code = run_manage(["seed_demo_geo"])
+            if geo_seed_code != 0:
+                print(
+                    "[WARN] No se pudieron sembrar coordenadas geo demo. "
+                    "Verifica dependencias, migraciones o disponibilidad del comando."
+                )
+            exit_code = exit_code or geo_seed_code
     else:
         print("[WARN] Se omiten migraciones y usuario demo porque el backend no quedó listo.")
 
