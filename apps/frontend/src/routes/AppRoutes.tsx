@@ -15,6 +15,10 @@ import { VehicleTypesPage } from '../pages/masters/VehicleTypesPage'
 import { VehiclesPage } from '../pages/masters/VehiclesPage'
 import { WarehousesPage } from '../pages/masters/WarehousesPage'
 import { ZonesPage } from '../pages/masters/ZonesPage'
+import { OperationsHomePage } from '../pages/operations/OperationsHomePage'
+import { PackagesPage } from '../pages/operations/PackagesPage'
+import { ShipmentsPage } from '../pages/operations/ShipmentsPage'
+import { TrackingEventsPage } from '../pages/operations/TrackingEventsPage'
 
 type RouterContextValue = {
   path: string
@@ -92,6 +96,14 @@ function renderProtectedPage(path: string) {
       return <VehiclesPage />
     case '/masters/drivers':
       return <DriversPage />
+    case '/operations':
+      return <OperationsHomePage />
+    case '/operations/shipments':
+      return <ShipmentsPage />
+    case '/operations/packages':
+      return <PackagesPage />
+    case '/operations/tracking':
+      return <TrackingEventsPage />
     default:
       return <NotFoundPage />
   }

@@ -17,8 +17,14 @@ const masterItems = [
   { label: 'Conductores', path: '/masters/drivers', icon: '♙' },
 ]
 
+const operationItems = [
+  { label: 'Inicio operación', path: '/operations', icon: '▧' },
+  { label: 'Encomiendas', path: '/operations/shipments', icon: '▣' },
+  { label: 'Bultos', path: '/operations/packages', icon: '▦' },
+  { label: 'Tracking', path: '/operations/tracking', icon: '◷' },
+]
+
 const upcomingItems = [
-  { label: 'Encomiendas', icon: '▣' },
   { label: 'Rutas', icon: '↝' },
   { label: 'Incidencias', icon: '!' },
   { label: 'Documentos', icon: '□' },
@@ -79,13 +85,7 @@ export function Sidebar() {
           <p className="px-3 text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Maestros</p>
           <div className="mt-3 space-y-1">
             {masterItems.map((item) => (
-              <NavigationButton
-                key={item.path}
-                item={item}
-                isActive={path === item.path}
-                onClick={() => navigate(item.path)}
-                isCompact
-              />
+              <NavigationButton key={item.path} item={item} isActive={path === item.path} onClick={() => navigate(item.path)} isCompact />
             ))}
           </div>
         </div>
@@ -93,19 +93,13 @@ export function Sidebar() {
         <div>
           <p className="px-3 text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Operación logística</p>
           <div className="mt-3 space-y-1">
+            {operationItems.map((item) => (
+              <NavigationButton key={item.path} item={item} isActive={path === item.path} onClick={() => navigate(item.path)} isCompact />
+            ))}
             {upcomingItems.map((item) => (
-              <div
-                key={item.label}
-                className="flex cursor-not-allowed items-center justify-between rounded-xl px-3 py-2 text-sm text-slate-400"
-                title="Próximamente"
-              >
-                <span className="flex items-center gap-3">
-                  <span className="flex h-5 w-5 items-center justify-center text-base">{item.icon}</span>
-                  {item.label}
-                </span>
-                <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500">
-                  Próximamente
-                </span>
+              <div key={item.label} className="flex cursor-not-allowed items-center justify-between rounded-xl px-3 py-2 text-sm text-slate-400" title="Próximamente">
+                <span className="flex items-center gap-3"><span className="flex h-5 w-5 items-center justify-center text-base">{item.icon}</span>{item.label}</span>
+                <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500">Próximamente</span>
               </div>
             ))}
           </div>
