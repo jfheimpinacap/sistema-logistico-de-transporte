@@ -4,7 +4,7 @@ Sistema logístico tipo TMS liviano para controlar transporte de mercancías, en
 
 ## Estado actual
 
-**Prompt 014 — Frontend de documentos internos logísticos**
+**Prompt 015 — Backend de reportes operativos y métricas del sistema**
 
 El proyecto cuenta con:
 
@@ -25,6 +25,7 @@ El proyecto cuenta con:
 - Vista responsive de modo conductor en `/driver` para seleccionar rutas, iniciar/completar ruta, gestionar paradas, registrar evidencias/incidencias, adjuntar archivos y capturar ubicación puntual opcional.
 - Backend de documentos internos logísticos para manifiestos de carga, hojas de ruta, notas internas de traslado y comprobantes internos de entrega.
 - Frontend protegido de documentos internos en `/operations/documents`, con creación manual, edición, emisión interna, anulación, archivo, generación desde ruta/encomienda, líneas y vista imprimible HTML en `/operations/documents/print`.
+- Backend de reportes operativos con app `reports`, endpoints JWT de solo lectura y métricas consolidadas para encomiendas, bultos, rutas, paradas, conductores, vehículos, evidencias, incidencias y documentos internos.
 
 > Modo offline, sincronización offline, firma dibujada, GPS en tiempo real, mapas externos, optimización automática, PDF real, firma avanzada e integración SII quedan para próximos prompts.
 
@@ -54,6 +55,7 @@ sistema-logistico-de-transporte/
 │   │   │   ├── locations/
 │   │   │   ├── logistics/
 │   │   │   ├── parties/
+│   │   │   ├── reports/
 │   │   │   └── routing/
 │   │   ├── config/
 │   │   ├── manage.py
@@ -319,7 +321,21 @@ curl -X POST http://localhost:8002/api/documents/generate-from-route/ \
   -d '{"route_id":1,"document_type":"route_manifest"}'
 ```
 
-> El frontend de documentos queda pendiente para Prompt 014. No se implementan facturas, notas de crédito, notas de débito, guía de despacho electrónica real, integración SII, PDF real ni firma electrónica avanzada.
+> No se implementan facturas, notas de crédito, notas de débito, guía de despacho electrónica real, integración SII, PDF real ni firma electrónica avanzada.
+
+### Reportes operativos protegidos con JWT
+
+Todos los endpoints siguientes requieren header `Authorization: Bearer <access_token>`, son de solo lectura y entregan datos agregados para dashboards y reportes. El frontend de reportes queda pendiente para **Prompt 016**.
+
+- `/api/reports/overview/` — resumen general de encomiendas, rutas, incidencias, evidencias y documentos.
+- `/api/reports/shipments-summary/` — métricas de encomiendas y bultos. Soporta `date_from`, `date_to`, `customer`, `current_status`, `priority`, `service_type` e `is_active`.
+- `/api/reports/routes-summary/` — métricas de rutas, paradas y asignaciones. Soporta `date_from`, `date_to`, `driver`, `vehicle`, `status`, `origin_warehouse` e `is_active`.
+- `/api/reports/incidents-summary/` — métricas de incidencias, severidades y rankings simples. Soporta `date_from`, `date_to`, `category`, `severity`, `status`, `driver`, `vehicle` e `is_active`.
+- `/api/reports/documents-summary/` — métricas de documentos internos por tipo, estado y fecha de emisión. Soporta `date_from`, `date_to`, `document_type`, `status`, `customer`, `route`, `shipment` e `is_active`.
+- `/api/reports/driver-performance/` — resumen por conductor. Soporta `date_from`, `date_to`, `driver` y `status`.
+- `/api/reports/vehicle-usage/` — resumen por vehículo. Soporta `date_from`, `date_to`, `vehicle`, `vehicle_type` y `status`.
+
+Los filtros de fecha usan formato ISO `YYYY-MM-DD`, por ejemplo `date_from=2026-05-01&date_to=2026-05-31`. Los filtros no enviados se omiten y las fechas inválidas responden HTTP 400 con un mensaje claro.
 
 Ejemplo de resolución de incidencia:
 
@@ -330,7 +346,7 @@ curl -X POST http://localhost:8002/api/incidents/1/resolve/ \
   -d '{"resolution_notes":"Se reprograma entrega para mañana"}'
 ```
 
-> Offline, sincronización offline, firma dibujada, GPS en tiempo real, mapas externos, optimización automática, frontend de documentos e integración SII quedan para próximos prompts.
+> Offline, sincronización offline, firma dibujada, GPS en tiempo real, mapas externos, optimización automática, frontend de reportes e integración SII quedan para próximos prompts.
 
 Ejemplo de cambio de estado:
 
@@ -520,8 +536,9 @@ Incluye únicamente:
 - Frontend de rutas con listados, formularios, detalle operativo, administración de paradas, asignación de encomiendas y acciones custom de ruta/parada.
 - Backend de fieldops con app `fieldops`, modelos `DeliveryProof` e `Incident`, endpoints JWT, archivos en desarrollo, soft delete y acciones custom de aceptación/rechazo/resolución/cancelación.
 - Backend de documentos internos con app `documents`, modelos `LogisticsDocument` y `LogisticsDocumentLine`, endpoints JWT, soft delete, generación desde rutas/encomiendas, acciones de emisión/anulación/archivo y datos JSON para impresión futura.
+- Backend de reportes operativos con app `reports`, servicios de agregación, endpoints JWT de solo lectura y filtros manuales sin `django-filter`.
 - Frontend de fieldops con páginas `/operations/delivery-proofs` y `/operations/incidents`, tablas, formularios, paneles de detalle/revisión/resolución, filtros y soporte de links a adjuntos entregados por el backend.
 - Frontend de documentos internos con página `/operations/documents`, vista `/operations/documents/print`, servicio autenticado, tipos TypeScript, tablas, formularios, paneles de acciones/generación/detalle/líneas y advertencias SII visibles.
 - Modo conductor responsive en `/driver` con selección de ruta, resumen, acciones de inicio/completado, paradas ordenadas, cambio de estado de parada, encomiendas asociadas, evidencias, incidencias, archivos y geolocalización puntual opcional.
 
-No incluye todavía app móvil nativa, modo offline, sincronización offline, firma dibujada, PDF real, firma electrónica avanzada, optimización automática de rutas, mapas externos, integración SII ni GPS en tiempo real. Esos módulos quedan pendientes para próximos prompts.
+No incluye todavía frontend de reportes, gráficos, exportación Excel/PDF, app móvil nativa, modo offline, sincronización offline, firma dibujada, PDF real, firma electrónica avanzada, optimización automática de rutas, mapas externos, integración SII ni GPS en tiempo real. Esos módulos quedan pendientes para próximos prompts.
