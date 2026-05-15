@@ -4,6 +4,7 @@ import { AppLayout } from '../components/layout/AppLayout'
 import { useAuth } from '../hooks/useAuth'
 import { DashboardPage } from '../pages/DashboardPage'
 import { HealthPage } from '../pages/HealthPage'
+import { DriverHomePage } from '../pages/driver/DriverHomePage'
 import { LoginPage } from '../pages/LoginPage'
 import { NotFoundPage } from '../pages/NotFoundPage'
 import { AddressesPage } from '../pages/masters/AddressesPage'
@@ -81,6 +82,8 @@ function renderProtectedPage(path: string) {
       return <DashboardPage />
     case '/health':
       return <HealthPage />
+    case '/driver':
+      return <DriverHomePage />
     case '/masters':
       return <MastersHomePage />
     case '/masters/customers':
