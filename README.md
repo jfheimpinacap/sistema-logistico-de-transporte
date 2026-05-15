@@ -4,7 +4,7 @@ Sistema logístico tipo TMS liviano para controlar transporte de mercancías, en
 
 ## Estado actual
 
-**Prompt 016 — Frontend de reportes operativos y dashboard analítico**
+**Prompt 017 — Exportación CSV/Excel compatible**
 
 El proyecto cuenta con:
 
@@ -27,8 +27,9 @@ El proyecto cuenta con:
 - Frontend protegido de documentos internos en `/operations/documents`, con creación manual, edición, emisión interna, anulación, archivo, generación desde ruta/encomienda, líneas y vista imprimible HTML en `/operations/documents/print`.
 - Backend de reportes operativos con app `reports`, endpoints JWT de solo lectura y métricas consolidadas para encomiendas, bultos, rutas, paradas, conductores, vehículos, evidencias, incidencias y documentos internos.
 - Frontend protegido de reportes operativos en `/reports`, con dashboard analítico, filtros simples, tarjetas, barras CSS, tablas de conductores/vehículos y manejo amigable de errores sin dependencias externas de gráficos.
+- Exportación CSV compatible con Excel para reportes de encomiendas, rutas, incidencias, documentos, rendimiento por conductor y uso por vehículo.
 
-> Exportación Excel/PDF, gráficos con librerías externas, mapas, GPS en tiempo real, optimización automática, integración SII, facturación y contabilidad quedan para próximos prompts.
+> La exportación genera CSV compatible con Excel, no archivos XLSX reales. XLSX real, PDF real, gráficos con librerías externas, mapas, GPS en tiempo real, optimización automática, integración SII, facturación y contabilidad quedan para próximos prompts.
 
 ## Stack técnico
 
@@ -153,14 +154,14 @@ Iniciar entorno de desarrollo local completo:
 py start.py dev
 ```
 
-Flujo sugerido para probar Prompt 016:
+Flujo sugerido para probar Prompt 017:
 
 ```bash
 py start.py prepare
 py start.py dev
 ```
 
-Luego abrir `/login`, ingresar con usuario demo `demo` y password `demo1234`, abrir `/reports` y revisar los reportes específicos de encomiendas, rutas, incidencias, documentos, conductores y vehículos.
+Luego abrir `/login`, ingresar con usuario demo `demo` y password `demo1234`, abrir `/reports`, entrar a un reporte específico, aplicar filtros, descargar el CSV y abrir el archivo en Excel o LibreOffice. La descarga es CSV compatible con Excel, no XLSX real.
 
 El comando sin argumentos asume `dev`. En Windows intenta abrir backend y frontend en terminales separadas.
 
@@ -189,12 +190,12 @@ El comando sin argumentos asume `dev`. En Windows intenta abrir backend y fronte
 - `GET /operations/documents` — administración frontend de documentos internos/provisorios con filtros, creación/edición, acciones custom, generación desde ruta/encomienda y líneas.
 - `GET /operations/documents/print` — vista imprimible HTML/CSS basada en `GET /api/documents/{id}/print-data/`.
 - `GET /reports` — resumen general de reportes operativos y accesos a reportes específicos.
-- `GET /reports/shipments` — reporte de encomiendas por estado, prioridad y tipo de servicio.
-- `GET /reports/routes` — reporte de rutas, paradas, asignaciones y resumen por fecha.
-- `GET /reports/incidents` — reporte de incidencias por estado, categoría, severidad y rankings.
-- `GET /reports/documents` — reporte de documentos internos/provisorios por tipo, estado y fecha de emisión.
-- `GET /reports/drivers` — tabla de rendimiento por conductor.
-- `GET /reports/vehicles` — tabla de uso por vehículo.
+- `GET /reports/shipments` — reporte de encomiendas por estado, prioridad y tipo de servicio, con exportación CSV compatible con Excel.
+- `GET /reports/routes` — reporte de rutas, paradas, asignaciones y resumen por fecha, con exportación CSV compatible con Excel.
+- `GET /reports/incidents` — reporte de incidencias por estado, categoría, severidad y rankings, con exportación CSV compatible con Excel.
+- `GET /reports/documents` — reporte de documentos internos/provisorios por tipo, estado y fecha de emisión, con exportación CSV compatible con Excel.
+- `GET /reports/drivers` — tabla de rendimiento por conductor, con exportación CSV compatible con Excel.
+- `GET /reports/vehicles` — tabla de uso por vehículo, con exportación CSV compatible con Excel.
 
 ## Endpoints backend disponibles
 
@@ -209,6 +210,17 @@ El frontend de reportes usa estos endpoints de solo lectura:
 - `GET /api/reports/documents-summary/`
 - `GET /api/reports/driver-performance/`
 - `GET /api/reports/vehicle-usage/`
+
+Endpoints de exportación CSV compatible con Excel:
+
+- `GET /api/reports/export/shipments.csv`
+- `GET /api/reports/export/routes.csv`
+- `GET /api/reports/export/incidents.csv`
+- `GET /api/reports/export/documents.csv`
+- `GET /api/reports/export/driver-performance.csv`
+- `GET /api/reports/export/vehicle-usage.csv`
+
+Estos endpoints requieren JWT, respetan los filtros del reporte correspondiente y devuelven `text/csv; charset=utf-8` con `Content-Disposition` de descarga. No generan XLSX real ni PDF real.
 
 Filtros comunes soportados según endpoint: `date_from`, `date_to`, `status`, `current_status`, `priority`, `service_type`, `customer`, `driver`, `vehicle`, `origin_warehouse`, `document_type`, `category`, `severity` e `is_active`. El formato de fecha es `YYYY-MM-DD`.
 

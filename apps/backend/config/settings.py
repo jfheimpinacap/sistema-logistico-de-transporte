@@ -111,6 +111,7 @@ CORS_ALLOWED_ORIGINS = env_list(
     "CORS_ALLOWED_ORIGINS",
     f"http://localhost:{FRONTEND_PORT},http://127.0.0.1:{FRONTEND_PORT}",
 )
+CORS_EXPOSE_HEADERS = ["Content-Disposition"]
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
