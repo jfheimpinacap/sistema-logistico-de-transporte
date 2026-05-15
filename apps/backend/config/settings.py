@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     "apps.fleet",
     "apps.logistics",
     "apps.routing",
+    "apps.fieldops",
 ]
 
 MIDDLEWARE = [
@@ -100,6 +101,8 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = "static/"
+MEDIA_URL = os.getenv("MEDIA_URL", "/media/")
+MEDIA_ROOT = Path(os.getenv("MEDIA_ROOT", BASE_DIR / "media"))
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 CORS_ALLOWED_ORIGINS = env_list(
