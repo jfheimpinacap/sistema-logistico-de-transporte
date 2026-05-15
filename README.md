@@ -4,7 +4,7 @@ Sistema logístico tipo TMS liviano para controlar transporte de mercancías, en
 
 ## Estado actual
 
-**Prompt 007 — Frontend operativo de encomiendas, bultos y tracking**
+**Prompt 008 — Backend de rutas, paradas y asignación de encomiendas**
 
 El proyecto cuenta con:
 
@@ -15,11 +15,12 @@ El proyecto cuenta con:
 - Frontend operativo base con login demo, layout, dashboard inicial y página de health.
 - APIs REST autenticadas para maestros logísticos iniciales: clientes, contactos, zonas, direcciones, bodegas, tipos de vehículo, vehículos y conductores.
 - CRUD frontend protegido para administrar clientes, contactos, zonas, direcciones, bodegas, tipos de vehículo, vehículos y conductores.
-- Seeds idempotentes para usuario demo, datos maestros logísticos demo y operaciones demo.
+- Seeds idempotentes para usuario demo, datos maestros logísticos demo, operaciones demo y rutas demo.
 - Backend operativo para encomiendas, bultos y eventos de tracking con cambio de estado auditado.
 - Frontend operativo protegido para administrar encomiendas, bultos, timeline de tracking y cambio manual de estado.
+- Backend de rutas reales con paradas ordenadas, asignación de conductor/vehículo y vinculación de encomiendas a rutas.
 
-> Rutas reales, paradas, app conductor, evidencias, incidencias avanzadas, documentos internos, optimización y GPS quedan para próximos prompts.
+> El frontend de rutas queda pendiente para el Prompt 009. App conductor, evidencias, incidencias avanzadas, documentos internos, optimización automática, mapas externos y GPS en tiempo real quedan para próximos prompts.
 
 ## Stack técnico
 
@@ -44,7 +45,8 @@ sistema-logistico-de-transporte/
 │   │   │   ├── fleet/
 │   │   │   ├── locations/
 │   │   │   ├── logistics/
-│   │   │   └── parties/
+│   │   │   ├── parties/
+│   │   │   └── routing/
 │   │   ├── config/
 │   │   ├── manage.py
 │   │   └── requirements.txt
@@ -113,6 +115,7 @@ python apps/backend/manage.py migrate
 python apps/backend/manage.py seed_demo_user
 python apps/backend/manage.py seed_demo_logistics
 python apps/backend/manage.py seed_demo_operations
+python apps/backend/manage.py seed_demo_routes
 ```
 
 ## Ejecutar el proyecto
@@ -225,6 +228,36 @@ Todos los endpoints siguientes requieren header `Authorization: Bearer <access_t
 - `/api/tracking-events/` — historial de tracking ordenado por defecto del más reciente al más antiguo (`occurred_at` descendente). Soporta filtros `shipment`, `package` y `status`.
 - `/api/shipments/{id}/change-status/` — acción `POST` para actualizar `current_status` de la encomienda y registrar un `TrackingEvent`.
 
+### Rutas y paradas protegidas con JWT
+
+Todos los endpoints siguientes requieren header `Authorization: Bearer <access_token>` y permiten CRUD básico del módulo de rutas:
+
+- `/api/routes/` — rutas reales con conductor, vehículo, bodega origen, estado, métricas y totales. Soporta `search`, `status`, `route_date`, `driver`, `vehicle`, `origin_warehouse` e `is_active`.
+- `/api/route-stops/` — paradas ordenadas de ruta. Soporta filtros `route`, `status`, `stop_type`, `zone` e `is_active`.
+- `/api/route-shipments/` — asignación de encomiendas a rutas y, opcionalmente, a paradas. Soporta filtros `route`, `stop`, `shipment`, `status` e `is_active`.
+- `/api/routes/{id}/change-status/` — acción `POST` para cambiar estado de ruta, marcar timestamps reales y reservar/liberar conductor o vehículo cuando corresponde.
+- `/api/routes/{id}/recalculate-summary/` — acción `POST` para recalcular totales de encomiendas, bultos, peso y volumen.
+- `/api/routes/{id}/assign-shipments/` — acción `POST` para vincular encomiendas a una ruta, actualizar estado operativo y crear evento de tracking.
+- `/api/routes/{id}/reorder-stops/` — acción `POST` para reordenar manualmente paradas de una ruta.
+- `/api/route-stops/{id}/change-status/` — acción `POST` para cambiar estado de una parada y registrar timestamps de llegada/completado.
+
+Comando demo idempotente:
+
+```bash
+python apps/backend/manage.py seed_demo_routes
+```
+
+Ejemplo de asignación de encomiendas a ruta:
+
+```bash
+curl -X POST http://localhost:8002/api/routes/1/assign-shipments/ \
+  -H "Authorization: Bearer <access_token>" \
+  -H "Content-Type: application/json" \
+  -d '{"shipment_ids":[1,2],"stop_id":1}'
+```
+
+> El frontend para rutas, paradas y planificación visual queda pendiente para el Prompt 009.
+
 Ejemplo de cambio de estado:
 
 ```bash
@@ -235,7 +268,7 @@ curl -X POST http://localhost:8002/api/shipments/1/change-status/ \
 ```
 
 
-## Flujo de prueba del Prompt 007
+## Flujo de prueba del Prompt 008
 
 ```bash
 py start.py prepare
@@ -247,7 +280,7 @@ Luego abre el frontend en `http://localhost:5175`, entra a `/login` con:
 - Usuario demo: `demo`
 - Password: `demo1234`
 
-Después abre `/operations/shipments` para listar encomiendas, crear/editar registros, revisar detalle, administrar bultos relacionados y cambiar estados. Si faltan datos base, entra primero a `/masters` para crear clientes, direcciones y bodegas.
+Después abre `/operations/shipments` para listar encomiendas, crear/editar registros, revisar detalle, administrar bultos relacionados y cambiar estados. El backend de rutas queda disponible vía API para pruebas con JWT; la interfaz frontend específica de rutas queda para el Prompt 009. Si faltan datos base, entra primero a `/masters` para crear clientes, direcciones y bodegas.
 
 ### Endpoints usados por el frontend operativo
 
@@ -285,6 +318,14 @@ python apps/backend/manage.py seed_demo_operations
 
 Este seed crea 3 encomiendas demo, 1 o 2 bultos por encomienda y eventos iniciales en estados `received`, `classified` y `ready_for_route`.
 
+Las rutas, paradas y asignaciones demo se crean de forma idempotente con:
+
+```bash
+python apps/backend/manage.py seed_demo_routes
+```
+
+Este seed crea 2 rutas demo, 3 paradas y asignaciones de encomiendas con evento de tracking `Asignada a ruta`.
+
 El seed de maestros crea datos mínimos de ejemplo:
 
 - 2 zonas.
@@ -306,6 +347,7 @@ python apps/backend/manage.py migrate
 python apps/backend/manage.py seed_demo_user
 python apps/backend/manage.py seed_demo_logistics
 python apps/backend/manage.py seed_demo_operations
+python apps/backend/manage.py seed_demo_routes
 ```
 
 ## Alcance actual
@@ -320,5 +362,6 @@ Incluye únicamente:
 - Frontend React con rutas, login demo, contexto de autenticación, layout operativo, dashboard, página de estado del sistema, CRUD inicial de maestros logísticos y módulo operativo de encomiendas.
 - Backend de maestros logísticos iniciales con apps `parties`, `locations` y `fleet`.
 - Backend operativo de encomiendas con app `logistics`, modelos `Shipment`, `Package` y `TrackingEvent`, endpoints JWT y acción `change-status`.
+- Backend de rutas con app `routing`, modelos `Route`, `RouteStop` y `RouteShipment`, endpoints JWT, soft delete, acciones de cambio de estado, asignación de encomiendas, recálculo de resumen y reordenamiento manual de paradas.
 
-No incluye todavía rutas reales, paradas, asignación de vehículos/conductores a rutas, app conductor, evidencias de entrega, incidencias avanzadas, documentos internos, optimización de rutas ni GPS. Esos módulos quedan pendientes para próximos prompts.
+No incluye todavía frontend de rutas, app conductor, evidencias de entrega, incidencias avanzadas, documentos internos, optimización automática de rutas, mapas externos ni GPS en tiempo real. Esos módulos quedan pendientes para próximos prompts.
