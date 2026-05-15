@@ -3,6 +3,9 @@ import { ApiClientError } from '../../services/apiClient'
 
 type ExportCsvButtonProps = {
   text?: string
+  title?: string
+  description?: string
+  helperText?: string
   onExport: () => Promise<void>
   disabled?: boolean
 }
@@ -13,7 +16,14 @@ function readableExportError(error: unknown) {
   return 'No fue posible descargar el CSV compatible con Excel.'
 }
 
-export function ExportCsvButton({ text = 'Exportar CSV', onExport, disabled = false }: ExportCsvButtonProps) {
+export function ExportCsvButton({
+  text = 'Exportar CSV',
+  title = 'CSV compatible con Excel',
+  description = 'Descarga compatible con Excel. No es archivo XLSX.',
+  helperText,
+  onExport,
+  disabled = false,
+}: ExportCsvButtonProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -33,8 +43,9 @@ export function ExportCsvButton({ text = 'Exportar CSV', onExport, disabled = fa
     <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-4 shadow-sm">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-sm font-semibold text-slate-800">CSV compatible con Excel</p>
-          <p className="text-xs text-slate-500">Descarga compatible con Excel. No es archivo XLSX.</p>
+          <p className="text-sm font-semibold text-slate-800">{title}</p>
+          <p className="text-xs text-slate-500">{description}</p>
+          {helperText ? <p className="mt-1 text-xs text-slate-400">{helperText}</p> : null}
         </div>
         <button
           type="button"

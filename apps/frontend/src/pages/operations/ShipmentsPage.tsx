@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { ChangeStatusPanel } from '../../components/operations/ChangeStatusPanel'
+import { ExportCsvButton } from '../../components/reports/ExportCsvButton'
 import { OperationStatusBadge, getPriorityLabel, getServiceTypeLabel, priorityOptions, serviceTypeOptions, shipmentStatusOptions } from '../../components/operations/OperationStatusBadge'
 import { PackagesTable } from '../../components/operations/PackagesTable'
 import { ShipmentForm } from '../../components/operations/ShipmentForm'
@@ -8,6 +9,7 @@ import { TrackingTimeline } from '../../components/operations/TrackingTimeline'
 import { useAuth } from '../../hooks/useAuth'
 import { useAppRouter } from '../../routes/AppRoutes'
 import { listMasterData } from '../../services/masterDataService'
+import { exportService } from '../../services/exportService'
 import { changeShipmentStatus, createShipment, deleteShipment, getReadableOperationError, getShipment, listPackages, listShipments, listTrackingEvents, updateShipment } from '../../services/operationsService'
 import type { Address, Customer, SelectOption, Warehouse } from '../../types/masterData'
 import type { ChangeStatusPayload, Package, Shipment, ShipmentPayload, TrackingEvent } from '../../types/operations'
@@ -200,6 +202,13 @@ export function ShipmentsPage() {
   }
 
   const activeShipmentId = selectedShipment?.id ?? null
+  const exportFilters = useMemo(() => ({
+    current_status: currentStatus,
+    priority,
+    service_type: serviceType,
+    is_active: activeFilter,
+  }), [activeFilter, currentStatus, priority, serviceType])
+
   const detailCards = useMemo(() => selectedShipment ? [
     ['Cliente', selectedShipment.customer_name || '—'],
     ['Origen', selectedShipment.origin_address_label || selectedShipment.origin_warehouse_name || '—'],
@@ -227,6 +236,13 @@ export function ShipmentsPage() {
           <select value={activeFilter} onChange={(event: any) => setActiveFilter(event.target.value as ActiveFilter)} className="rounded-xl border border-slate-200 px-3 py-2 text-sm"><option value="true">Activas</option><option value="false">Inactivas</option><option value="all">Todas</option></select>
         </div>
       </section>
+
+      <ExportCsvButton
+        text="Descargar CSV compatible con Excel"
+        onExport={() => accessToken ? exportService.exportShipments({ token: accessToken, ...exportFilters }) : Promise.reject(new Error('Debes iniciar sesión para exportar CSV.'))}
+        disabled={!accessToken}
+        helperText="La exportación respeta estado, prioridad, servicio y activos. La búsqueda en pantalla no forma parte del CSV de reportes."
+      />
 
       <ShipmentsTable shipments={shipments} isLoading={isLoading} error={error} selectedId={activeShipmentId} onView={(shipment) => void loadDetail(shipment)} onEdit={openEditForm} onDelete={(shipment) => void handleDelete(shipment)} />
 

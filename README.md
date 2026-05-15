@@ -4,7 +4,7 @@ Sistema logístico tipo TMS liviano para controlar transporte de mercancías, en
 
 ## Estado actual
 
-**Prompt 017 — Exportación CSV/Excel compatible**
+**Prompt 018 — Exportación CSV en listados operativos y cierre de fase MVP**
 
 El proyecto cuenta con:
 
@@ -28,6 +28,8 @@ El proyecto cuenta con:
 - Backend de reportes operativos con app `reports`, endpoints JWT de solo lectura y métricas consolidadas para encomiendas, bultos, rutas, paradas, conductores, vehículos, evidencias, incidencias y documentos internos.
 - Frontend protegido de reportes operativos en `/reports`, con dashboard analítico, filtros simples, tarjetas, barras CSS, tablas de conductores/vehículos y manejo amigable de errores sin dependencias externas de gráficos.
 - Exportación CSV compatible con Excel para reportes de encomiendas, rutas, incidencias, documentos, rendimiento por conductor y uso por vehículo.
+- Exportación CSV compatible con Excel también en listados operativos clave: `/operations/shipments`, `/operations/routes`, `/operations/incidents` y `/operations/documents`.
+- Documento de cierre de fase MVP operativa en `docs/FASE_MVP_OPERATIVA.md`.
 
 > La exportación genera CSV compatible con Excel, no archivos XLSX reales. XLSX real, PDF real, gráficos con librerías externas, mapas, GPS en tiempo real, optimización automática, integración SII, facturación y contabilidad quedan para próximos prompts.
 
@@ -73,6 +75,8 @@ sistema-logistico-de-transporte/
 │       ├── package.json
 │       ├── tsconfig.json
 │       └── vite.config.ts
+├── docs/
+│   └── FASE_MVP_OPERATIVA.md
 ├── .env.example
 ├── .gitignore
 ├── README.md
@@ -154,14 +158,14 @@ Iniciar entorno de desarrollo local completo:
 py start.py dev
 ```
 
-Flujo sugerido para probar Prompt 017:
+Flujo sugerido para probar Prompt 018:
 
 ```bash
 py start.py prepare
 py start.py dev
 ```
 
-Luego abrir `/login`, ingresar con usuario demo `demo` y password `demo1234`, abrir `/reports`, entrar a un reporte específico, aplicar filtros, descargar el CSV y abrir el archivo en Excel o LibreOffice. La descarga es CSV compatible con Excel, no XLSX real.
+Luego abrir `/login`, ingresar con usuario demo `demo` y password `demo1234`, abrir `/operations` o `/reports`, aplicar filtros principales y descargar CSV desde los listados operativos o reportes. La descarga es CSV compatible con Excel, no XLSX real. Para el resumen del cierre MVP, revisar `docs/FASE_MVP_OPERATIVA.md`.
 
 El comando sin argumentos asume `dev`. En Windows intenta abrir backend y frontend en terminales separadas.
 
@@ -181,13 +185,13 @@ El comando sin argumentos asume `dev`. En Windows intenta abrir backend y fronte
 - `GET /masters/vehicles` — CRUD frontend de vehículos.
 - `GET /masters/drivers` — CRUD frontend de conductores.
 - `GET /operations` — índice del módulo operativo de encomiendas, bultos, tracking, rutas, evidencias, incidencias y documentos.
-- `GET /operations/shipments` — administración frontend de encomiendas con filtros, detalle y cambio de estado.
+- `GET /operations/shipments` — administración frontend de encomiendas con filtros, detalle, cambio de estado y exportación CSV compatible con Excel.
 - `GET /operations/packages` — administración frontend de bultos asociados a encomiendas.
 - `GET /operations/tracking` — consulta frontend de eventos de tracking.
-- `GET /operations/routes` — administración frontend de rutas, paradas, asignación de encomiendas, estados y resumen.
+- `GET /operations/routes` — administración frontend de rutas, paradas, asignación de encomiendas, estados, resumen y exportación CSV compatible con Excel.
 - `GET /operations/delivery-proofs` — administración frontend de evidencias de entrega con filtros, creación/edición, detalle, aceptación, rechazo y desactivación.
-- `GET /operations/incidents` — administración frontend de incidencias con filtros, creación/edición, detalle, resolución, cancelación y desactivación.
-- `GET /operations/documents` — administración frontend de documentos internos/provisorios con filtros, creación/edición, acciones custom, generación desde ruta/encomienda y líneas.
+- `GET /operations/incidents` — administración frontend de incidencias con filtros, creación/edición, detalle, resolución, cancelación, desactivación y exportación CSV compatible con Excel.
+- `GET /operations/documents` — administración frontend de documentos internos/provisorios con filtros, creación/edición, acciones custom, generación desde ruta/encomienda, líneas y exportación CSV compatible con Excel.
 - `GET /operations/documents/print` — vista imprimible HTML/CSS basada en `GET /api/documents/{id}/print-data/`.
 - `GET /reports` — resumen general de reportes operativos y accesos a reportes específicos.
 - `GET /reports/shipments` — reporte de encomiendas por estado, prioridad y tipo de servicio, con exportación CSV compatible con Excel.
@@ -196,6 +200,11 @@ El comando sin argumentos asume `dev`. En Windows intenta abrir backend y fronte
 - `GET /reports/documents` — reporte de documentos internos/provisorios por tipo, estado y fecha de emisión, con exportación CSV compatible con Excel.
 - `GET /reports/drivers` — tabla de rendimiento por conductor, con exportación CSV compatible con Excel.
 - `GET /reports/vehicles` — tabla de uso por vehículo, con exportación CSV compatible con Excel.
+
+## Documentación de fase
+
+- `docs/FASE_MVP_OPERATIVA.md` resume el alcance cerrado del MVP operativo, flujos cubiertos, rutas principales, comandos de prueba y límites explícitos para próximas fases.
+- Los documentos logísticos del MVP son internos/provisorios: no emiten documentos tributarios SII reales ni guía de despacho electrónica real.
 
 ## Endpoints backend disponibles
 
@@ -220,7 +229,7 @@ Endpoints de exportación CSV compatible con Excel:
 - `GET /api/reports/export/driver-performance.csv`
 - `GET /api/reports/export/vehicle-usage.csv`
 
-Estos endpoints requieren JWT, respetan los filtros del reporte correspondiente y devuelven `text/csv; charset=utf-8` con `Content-Disposition` de descarga. No generan XLSX real ni PDF real.
+Estos endpoints requieren JWT, respetan los filtros del reporte correspondiente y devuelven `text/csv; charset=utf-8` con `Content-Disposition` de descarga. Se reutilizan tanto desde `/reports/*` como desde los listados operativos principales. No generan XLSX real ni PDF real.
 
 Filtros comunes soportados según endpoint: `date_from`, `date_to`, `status`, `current_status`, `priority`, `service_type`, `customer`, `driver`, `vehicle`, `origin_warehouse`, `document_type`, `category`, `severity` e `is_active`. El formato de fecha es `YYYY-MM-DD`.
 
