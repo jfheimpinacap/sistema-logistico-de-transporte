@@ -25,6 +25,13 @@ import { PackagesPage } from '../pages/operations/PackagesPage'
 import { ShipmentsPage } from '../pages/operations/ShipmentsPage'
 import { TrackingEventsPage } from '../pages/operations/TrackingEventsPage'
 import { RoutesPage } from '../pages/routing/RoutesPage'
+import { ReportsHomePage } from '../pages/reports/ReportsHomePage'
+import { ShipmentsReportPage } from '../pages/reports/ShipmentsReportPage'
+import { RoutesReportPage } from '../pages/reports/RoutesReportPage'
+import { IncidentsReportPage } from '../pages/reports/IncidentsReportPage'
+import { DocumentsReportPage } from '../pages/reports/DocumentsReportPage'
+import { DriverPerformanceReportPage } from '../pages/reports/DriverPerformanceReportPage'
+import { VehicleUsageReportPage } from '../pages/reports/VehicleUsageReportPage'
 
 type RouterContextValue = {
   path: string
@@ -86,6 +93,20 @@ function renderProtectedPage(path: string) {
       return <HealthPage />
     case '/driver':
       return <DriverHomePage />
+    case '/reports':
+      return <ReportsHomePage />
+    case '/reports/shipments':
+      return <ShipmentsReportPage />
+    case '/reports/routes':
+      return <RoutesReportPage />
+    case '/reports/incidents':
+      return <IncidentsReportPage />
+    case '/reports/documents':
+      return <DocumentsReportPage />
+    case '/reports/drivers':
+      return <DriverPerformanceReportPage />
+    case '/reports/vehicles':
+      return <VehicleUsageReportPage />
     case '/masters':
       return <MastersHomePage />
     case '/masters/customers':

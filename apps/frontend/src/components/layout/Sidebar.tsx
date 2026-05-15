@@ -6,6 +6,17 @@ const mainItems = [
   { label: 'Estado del sistema', path: '/health', icon: '◉' },
 ]
 
+
+const reportItems = [
+  { label: 'Resumen general', path: '/reports', icon: '▥' },
+  { label: 'Encomiendas', path: '/reports/shipments', icon: '▣' },
+  { label: 'Rutas', path: '/reports/routes', icon: '↝' },
+  { label: 'Incidencias', path: '/reports/incidents', icon: '!' },
+  { label: 'Documentos', path: '/reports/documents', icon: '□' },
+  { label: 'Conductores', path: '/reports/drivers', icon: '♙' },
+  { label: 'Vehículos', path: '/reports/vehicles', icon: '▰' },
+]
+
 const masterItems = [
   { label: 'Inicio maestros', path: '/masters', icon: '◇' },
   { label: 'Clientes', path: '/masters/customers', icon: '◆' },
@@ -81,6 +92,16 @@ export function Sidebar() {
           {mainItems.map((item) => (
             <NavigationButton key={item.path} item={item} isActive={path === item.path} onClick={() => navigate(item.path)} />
           ))}
+        </div>
+
+
+        <div>
+          <p className="px-3 text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Reportes</p>
+          <div className="mt-3 space-y-1">
+            {reportItems.map((item) => (
+              <NavigationButton key={item.path} item={item} isActive={path === item.path} onClick={() => navigate(item.path)} isCompact />
+            ))}
+          </div>
         </div>
 
         <div>
