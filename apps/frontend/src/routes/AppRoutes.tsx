@@ -18,6 +18,8 @@ import { WarehousesPage } from '../pages/masters/WarehousesPage'
 import { ZonesPage } from '../pages/masters/ZonesPage'
 import { DeliveryProofsPage } from '../pages/fieldops/DeliveryProofsPage'
 import { IncidentsPage } from '../pages/fieldops/IncidentsPage'
+import { DocumentsPage } from '../pages/documents/DocumentsPage'
+import { DocumentPrintPage } from '../pages/documents/DocumentPrintPage'
 import { OperationsHomePage } from '../pages/operations/OperationsHomePage'
 import { PackagesPage } from '../pages/operations/PackagesPage'
 import { ShipmentsPage } from '../pages/operations/ShipmentsPage'
@@ -116,6 +118,10 @@ function renderProtectedPage(path: string) {
       return <DeliveryProofsPage />
     case '/operations/incidents':
       return <IncidentsPage />
+    case '/operations/documents':
+      return <DocumentsPage />
+    case '/operations/documents/print':
+      return <DocumentPrintPage />
     default:
       return <NotFoundPage />
   }

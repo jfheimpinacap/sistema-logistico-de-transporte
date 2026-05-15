@@ -8,7 +8,7 @@ const cards = [
   { title: 'Modo conductor', description: 'Operar rutas desde móvil: paradas, evidencias, incidencias y ubicación puntual.', path: '/driver', icon: '▣', available: true },
   { title: 'Evidencias', description: 'Revisar, aceptar y rechazar pruebas de entrega.', path: '/operations/delivery-proofs', icon: '☑', available: true },
   { title: 'Incidencias', description: 'Registrar, resolver y cancelar excepciones operativas.', path: '/operations/incidents', icon: '!', available: true },
-  { title: 'Documentos', description: 'Documentos internos y respaldos próximamente.', icon: '□', available: false },
+  { title: 'Documentos', description: 'Administrar documentos internos/provisorios, emisión interna y vista imprimible.', path: '/operations/documents', icon: '□', available: true },
 ]
 
 export function OperationsHomePage() {
@@ -17,9 +17,9 @@ export function OperationsHomePage() {
   return (
     <div className="space-y-6">
       <section className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-        <span className="inline-flex items-center gap-2 rounded-full bg-cyan-50 px-3 py-1 text-sm font-semibold text-cyan-700">▣ Prompt 012 — Operación logística</span>
+        <span className="inline-flex items-center gap-2 rounded-full bg-cyan-50 px-3 py-1 text-sm font-semibold text-cyan-700">▣ Prompt 014 — Operación logística</span>
         <h2 className="mt-4 text-3xl font-bold tracking-tight text-slate-950">Módulo operativo de encomiendas</h2>
-        <p className="mt-3 max-w-3xl text-slate-600">Administra encomiendas, bultos, tracking, rutas, evidencias e incidencias desde el panel, y usa el modo conductor para operación responsive en terreno. Offline, GPS en tiempo real, mapas y optimización quedan reservados para próximos prompts.</p>
+        <p className="mt-3 max-w-3xl text-slate-600">Administra encomiendas, bultos, tracking, rutas, evidencias, incidencias y documentos internos/provisorios desde el panel, y usa el modo conductor para operación responsive en terreno. Offline, GPS en tiempo real, mapas y optimización quedan reservados para próximos prompts.</p>
       </section>
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">

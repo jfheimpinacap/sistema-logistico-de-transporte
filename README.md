@@ -4,7 +4,7 @@ Sistema logístico tipo TMS liviano para controlar transporte de mercancías, en
 
 ## Estado actual
 
-**Prompt 013 — Backend de documentos internos logísticos**
+**Prompt 014 — Frontend de documentos internos logísticos**
 
 El proyecto cuenta con:
 
@@ -24,8 +24,9 @@ El proyecto cuenta con:
 - Frontend protegido para administrar evidencias de entrega e incidencias operativas, incluyendo formularios con archivos opcionales, filtros, detalle y acciones custom.
 - Vista responsive de modo conductor en `/driver` para seleccionar rutas, iniciar/completar ruta, gestionar paradas, registrar evidencias/incidencias, adjuntar archivos y capturar ubicación puntual opcional.
 - Backend de documentos internos logísticos para manifiestos de carga, hojas de ruta, notas internas de traslado y comprobantes internos de entrega.
+- Frontend protegido de documentos internos en `/operations/documents`, con creación manual, edición, emisión interna, anulación, archivo, generación desde ruta/encomienda, líneas y vista imprimible HTML en `/operations/documents/print`.
 
-> Modo offline, sincronización offline, firma dibujada, GPS en tiempo real, mapas externos, optimización automática, frontend de documentos e integración SII quedan para próximos prompts.
+> Modo offline, sincronización offline, firma dibujada, GPS en tiempo real, mapas externos, optimización automática, PDF real, firma avanzada e integración SII quedan para próximos prompts.
 
 ## Stack técnico
 
@@ -166,13 +167,15 @@ El comando sin argumentos asume `dev`. En Windows intenta abrir backend y fronte
 - `GET /masters/vehicle-types` — CRUD frontend de tipos de vehículo.
 - `GET /masters/vehicles` — CRUD frontend de vehículos.
 - `GET /masters/drivers` — CRUD frontend de conductores.
-- `GET /operations` — índice del módulo operativo de encomiendas, bultos, tracking, rutas, evidencias e incidencias.
+- `GET /operations` — índice del módulo operativo de encomiendas, bultos, tracking, rutas, evidencias, incidencias y documentos.
 - `GET /operations/shipments` — administración frontend de encomiendas con filtros, detalle y cambio de estado.
 - `GET /operations/packages` — administración frontend de bultos asociados a encomiendas.
 - `GET /operations/tracking` — consulta frontend de eventos de tracking.
 - `GET /operations/routes` — administración frontend de rutas, paradas, asignación de encomiendas, estados y resumen.
 - `GET /operations/delivery-proofs` — administración frontend de evidencias de entrega con filtros, creación/edición, detalle, aceptación, rechazo y desactivación.
 - `GET /operations/incidents` — administración frontend de incidencias con filtros, creación/edición, detalle, resolución, cancelación y desactivación.
+- `GET /operations/documents` — administración frontend de documentos internos/provisorios con filtros, creación/edición, acciones custom, generación desde ruta/encomienda y líneas.
+- `GET /operations/documents/print` — vista imprimible HTML/CSS basada en `GET /api/documents/{id}/print-data/`.
 
 ## Endpoints backend disponibles
 
@@ -299,7 +302,7 @@ Todos los endpoints siguientes requieren header `Authorization: Bearer <access_t
 - `/api/documents/{id}/archive/` — acción `POST` para archivar internamente un documento.
 - `/api/documents/generate-from-route/` — acción `POST` para generar manifiesto, hoja de ruta o nota interna de traslado desde una ruta.
 - `/api/documents/generate-from-shipment/` — acción `POST` para generar comprobante interno de entrega o nota interna de traslado desde una encomienda.
-- `/api/documents/{id}/print-data/` — acción `GET` que entrega JSON listo para una vista imprimible futura. No genera PDF real.
+- `/api/documents/{id}/print-data/` — acción `GET` que entrega JSON listo para la vista imprimible HTML/CSS del frontend. No genera PDF real.
 
 Comando demo idempotente:
 
@@ -406,7 +409,31 @@ El frontend operativo consume estos endpoints protegidos:
 - `GET|POST /api/incidents/` y `GET|PATCH|DELETE /api/incidents/{id}/`
 - `POST /api/incidents/{id}/resolve/`
 - `POST /api/incidents/{id}/cancel/`
+- `GET|POST /api/documents/` y `GET|PATCH|DELETE /api/documents/{id}/`
+- `GET|POST /api/document-lines/` y `GET|PATCH|DELETE /api/document-lines/{id}/`
+- `POST /api/documents/{id}/issue/`
+- `POST /api/documents/{id}/cancel/`
+- `POST /api/documents/{id}/archive/`
+- `POST /api/documents/generate-from-route/`
+- `POST /api/documents/generate-from-shipment/`
+- `GET /api/documents/{id}/print-data/`
 
+## Flujo de prueba del módulo de documentos
+
+```bash
+py start.py prepare
+py start.py dev
+```
+
+1. Abrir `/login`.
+2. Iniciar sesión con usuario demo `demo` y password `demo1234`.
+3. Abrir `/operations/documents`.
+4. Generar un documento desde una ruta demo.
+5. Emitir internamente el documento.
+6. Abrir la vista imprimible.
+7. Usar el botón **Imprimir** del navegador.
+
+> Este módulo maneja documentos internos/provisorios y **NO emite documentos tributarios reales del SII**. La optimización automática, mapas externos, GPS en tiempo real, firma electrónica avanzada, PDF real e integración SII quedan para prompts posteriores.
 
 ## Credenciales demo
 
@@ -486,7 +513,7 @@ Incluye únicamente:
 - Endpoint de salud `GET /api/health/`.
 - Endpoints JWT de login, refresh y usuario actual.
 - Usuario demo para desarrollo local.
-- Frontend React con rutas, login demo, contexto de autenticación, layout operativo, dashboard, página de estado del sistema, CRUD inicial de maestros logísticos, módulo operativo de encomiendas, módulo frontend de rutas y módulo frontend de fieldops.
+- Frontend React con rutas, login demo, contexto de autenticación, layout operativo, dashboard, página de estado del sistema, CRUD inicial de maestros logísticos, módulo operativo de encomiendas, módulo frontend de rutas, módulo frontend de fieldops y módulo frontend de documentos internos.
 - Backend de maestros logísticos iniciales con apps `parties`, `locations` y `fleet`.
 - Backend operativo de encomiendas con app `logistics`, modelos `Shipment`, `Package` y `TrackingEvent`, endpoints JWT y acción `change-status`.
 - Backend de rutas con app `routing`, modelos `Route`, `RouteStop` y `RouteShipment`, endpoints JWT, soft delete, acciones de cambio de estado, asignación de encomiendas, recálculo de resumen y reordenamiento manual de paradas.
@@ -494,6 +521,7 @@ Incluye únicamente:
 - Backend de fieldops con app `fieldops`, modelos `DeliveryProof` e `Incident`, endpoints JWT, archivos en desarrollo, soft delete y acciones custom de aceptación/rechazo/resolución/cancelación.
 - Backend de documentos internos con app `documents`, modelos `LogisticsDocument` y `LogisticsDocumentLine`, endpoints JWT, soft delete, generación desde rutas/encomiendas, acciones de emisión/anulación/archivo y datos JSON para impresión futura.
 - Frontend de fieldops con páginas `/operations/delivery-proofs` y `/operations/incidents`, tablas, formularios, paneles de detalle/revisión/resolución, filtros y soporte de links a adjuntos entregados por el backend.
+- Frontend de documentos internos con página `/operations/documents`, vista `/operations/documents/print`, servicio autenticado, tipos TypeScript, tablas, formularios, paneles de acciones/generación/detalle/líneas y advertencias SII visibles.
 - Modo conductor responsive en `/driver` con selección de ruta, resumen, acciones de inicio/completado, paradas ordenadas, cambio de estado de parada, encomiendas asociadas, evidencias, incidencias, archivos y geolocalización puntual opcional.
 
-No incluye todavía app móvil nativa, modo offline, sincronización offline, firma dibujada, frontend de documentos, PDF real, optimización automática de rutas, mapas externos, integración SII ni GPS en tiempo real. Esos módulos quedan pendientes para próximos prompts.
+No incluye todavía app móvil nativa, modo offline, sincronización offline, firma dibujada, PDF real, firma electrónica avanzada, optimización automática de rutas, mapas externos, integración SII ni GPS en tiempo real. Esos módulos quedan pendientes para próximos prompts.
