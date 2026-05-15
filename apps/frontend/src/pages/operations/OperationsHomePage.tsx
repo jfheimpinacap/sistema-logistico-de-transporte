@@ -4,7 +4,7 @@ const cards = [
   { title: 'Encomiendas', description: 'Crear, filtrar, editar y cambiar estados de encomiendas.', path: '/operations/shipments', icon: '▣', available: true },
   { title: 'Bultos', description: 'Administrar paquetes asociados a encomiendas.', path: '/operations/packages', icon: '▦', available: true },
   { title: 'Tracking', description: 'Revisar el historial de eventos operativos.', path: '/operations/tracking', icon: '◷', available: true },
-  { title: 'Rutas', description: 'Planificación y paradas en próximos prompts.', icon: '↝', available: false },
+  { title: 'Rutas', description: 'Planificar rutas, paradas y asignar encomiendas.', path: '/operations/routes', icon: '↝', available: true },
   { title: 'Incidencias', description: 'Gestión avanzada de excepciones próximamente.', icon: '!', available: false },
   { title: 'Documentos', description: 'Documentos internos y respaldos próximamente.', icon: '□', available: false },
 ]
@@ -15,9 +15,9 @@ export function OperationsHomePage() {
   return (
     <div className="space-y-6">
       <section className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-        <span className="inline-flex items-center gap-2 rounded-full bg-cyan-50 px-3 py-1 text-sm font-semibold text-cyan-700">▣ Prompt 007 — Operación logística</span>
+        <span className="inline-flex items-center gap-2 rounded-full bg-cyan-50 px-3 py-1 text-sm font-semibold text-cyan-700">▣ Prompt 009 — Operación logística</span>
         <h2 className="mt-4 text-3xl font-bold tracking-tight text-slate-950">Módulo operativo de encomiendas</h2>
-        <p className="mt-3 max-w-3xl text-slate-600">Administra encomiendas, bultos y tracking desde el panel. Rutas reales, incidencias avanzadas, documentos, GPS y optimización quedan reservados para próximos prompts.</p>
+        <p className="mt-3 max-w-3xl text-slate-600">Administra encomiendas, bultos, tracking y rutas reales desde el panel. Incidencias avanzadas, documentos, GPS y optimización quedan reservados para próximos prompts.</p>
       </section>
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">

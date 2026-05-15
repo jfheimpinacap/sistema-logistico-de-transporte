@@ -1,0 +1,12 @@
+import { useEffect, useState } from 'react'
+import type { FormEvent } from 'react'
+import type { ReorderStopsPayload, RouteStop } from '../../types/routing'
+
+type Props = { stops: RouteStop[]; isSaving: boolean; error?: string | null; onSubmit: (payload: ReorderStopsPayload) => Promise<void> | void }
+export function ReorderStopsPanel({ stops, isSaving, error, onSubmit }: Props) {
+  const [items, setItems] = useState(() => stops.map((stop) => ({ id: Number(stop.id), label: `#${stop.sequence} · ${stop.address_label || stop.contact_name || 'Parada'}`, sequence: stop.sequence })))
+  useEffect(() => setItems(stops.map((stop) => ({ id: Number(stop.id), label: `#${stop.sequence} · ${stop.address_label || stop.contact_name || 'Parada'}`, sequence: stop.sequence }))), [stops])
+  function setSequence(id: number, sequence: number) { setItems((current) => current.map((item) => item.id === id ? { ...item, sequence } : item)) }
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) { event.preventDefault(); await onSubmit({ stops: items.map(({ id, sequence }) => ({ id, sequence: Number(sequence) })) }) }
+  return <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm"><h3 className="text-lg font-bold text-slate-950">Reordenar paradas</h3><p className="mt-1 text-sm text-slate-500">Edita manualmente los números de secuencia. Drag and drop queda para próximos prompts.</p>{error ? <p className="mt-3 rounded-2xl bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">{error}</p> : null}<form onSubmit={handleSubmit} className="mt-4 space-y-3">{items.length === 0 ? <p className="text-sm text-slate-500">No hay paradas para reordenar.</p> : items.map((item) => <label key={item.id} className="grid gap-2 rounded-2xl border border-slate-200 p-3 text-sm font-semibold text-slate-700 md:grid-cols-[1fr_120px] md:items-center"><span>{item.label}</span><input type="number" min="1" className="rounded-xl border border-slate-200 px-3 py-2 text-sm" value={item.sequence} onChange={(event: any) => setSequence(item.id, Number(event.target.value))} /></label>)}<button type="submit" disabled={isSaving || items.length === 0} className="w-full rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400">{isSaving ? 'Reordenando...' : 'Guardar orden'}</button></form></section>
+}

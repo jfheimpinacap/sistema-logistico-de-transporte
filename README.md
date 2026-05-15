@@ -4,7 +4,7 @@ Sistema logístico tipo TMS liviano para controlar transporte de mercancías, en
 
 ## Estado actual
 
-**Prompt 008 — Backend de rutas, paradas y asignación de encomiendas**
+**Prompt 009 — Frontend de rutas, paradas y asignación de encomiendas**
 
 El proyecto cuenta con:
 
@@ -19,8 +19,9 @@ El proyecto cuenta con:
 - Backend operativo para encomiendas, bultos y eventos de tracking con cambio de estado auditado.
 - Frontend operativo protegido para administrar encomiendas, bultos, timeline de tracking y cambio manual de estado.
 - Backend de rutas reales con paradas ordenadas, asignación de conductor/vehículo y vinculación de encomiendas a rutas.
+- Frontend protegido para administrar rutas, paradas, asignación de encomiendas, cambio de estados, recálculo de resumen y reordenamiento manual de paradas.
 
-> El frontend de rutas queda pendiente para el Prompt 009. App conductor, evidencias, incidencias avanzadas, documentos internos, optimización automática, mapas externos y GPS en tiempo real quedan para próximos prompts.
+> App conductor, evidencias, incidencias avanzadas, documentos internos, optimización automática, mapas externos y GPS en tiempo real quedan para próximos prompts.
 
 ## Stack técnico
 
@@ -154,10 +155,11 @@ El comando sin argumentos asume `dev`. En Windows intenta abrir backend y fronte
 - `GET /masters/vehicle-types` — CRUD frontend de tipos de vehículo.
 - `GET /masters/vehicles` — CRUD frontend de vehículos.
 - `GET /masters/drivers` — CRUD frontend de conductores.
-- `GET /operations` — índice del módulo operativo de encomiendas, bultos y tracking.
+- `GET /operations` — índice del módulo operativo de encomiendas, bultos, tracking y rutas.
 - `GET /operations/shipments` — administración frontend de encomiendas con filtros, detalle y cambio de estado.
 - `GET /operations/packages` — administración frontend de bultos asociados a encomiendas.
 - `GET /operations/tracking` — consulta frontend de eventos de tracking.
+- `GET /operations/routes` — administración frontend de rutas, paradas, asignación de encomiendas, estados y resumen.
 
 ## Endpoints backend disponibles
 
@@ -256,7 +258,7 @@ curl -X POST http://localhost:8002/api/routes/1/assign-shipments/ \
   -d '{"shipment_ids":[1,2],"stop_id":1}'
 ```
 
-> El frontend para rutas, paradas y planificación visual queda pendiente para el Prompt 009.
+> App conductor, evidencias, incidencias avanzadas, documentos internos, GPS, optimización automática e integración con mapas externos quedan para próximos prompts.
 
 Ejemplo de cambio de estado:
 
@@ -268,7 +270,7 @@ curl -X POST http://localhost:8002/api/shipments/1/change-status/ \
 ```
 
 
-## Flujo de prueba del Prompt 008
+## Flujo de prueba del Prompt 009
 
 ```bash
 py start.py prepare
@@ -280,16 +282,24 @@ Luego abre el frontend en `http://localhost:5175`, entra a `/login` con:
 - Usuario demo: `demo`
 - Password: `demo1234`
 
-Después abre `/operations/shipments` para listar encomiendas, crear/editar registros, revisar detalle, administrar bultos relacionados y cambiar estados. El backend de rutas queda disponible vía API para pruebas con JWT; la interfaz frontend específica de rutas queda para el Prompt 009. Si faltan datos base, entra primero a `/masters` para crear clientes, direcciones y bodegas.
+Después abre `/operations/routes` para listar rutas, crear/editar registros, revisar detalle, administrar paradas, asignar encomiendas, cambiar estados, recalcular resumen y reordenar paradas. Si faltan datos base, entra primero a `/masters` para crear bodegas, conductores, vehículos o direcciones.
 
 ### Endpoints usados por el frontend operativo
 
-El frontend del Prompt 007 consume estos endpoints protegidos:
+El frontend operativo consume estos endpoints protegidos:
 
 - `GET|POST /api/shipments/` y `GET|PATCH|DELETE /api/shipments/{id}/`
 - `GET|POST /api/packages/` y `GET|PATCH|DELETE /api/packages/{id}/`
 - `GET|POST /api/tracking-events/` y `GET /api/tracking-events/{id}/`
 - `POST /api/shipments/{id}/change-status/`
+- `GET|POST /api/routes/` y `GET|PATCH|DELETE /api/routes/{id}/`
+- `GET|POST /api/route-stops/` y `GET|PATCH|DELETE /api/route-stops/{id}/`
+- `GET|POST /api/route-shipments/` y `GET|PATCH|DELETE /api/route-shipments/{id}/`
+- `POST /api/routes/{id}/change-status/`
+- `POST /api/routes/{id}/recalculate-summary/`
+- `POST /api/routes/{id}/assign-shipments/`
+- `POST /api/routes/{id}/reorder-stops/`
+- `POST /api/route-stops/{id}/change-status/`
 
 
 ## Credenciales demo
@@ -359,9 +369,10 @@ Incluye únicamente:
 - Endpoint de salud `GET /api/health/`.
 - Endpoints JWT de login, refresh y usuario actual.
 - Usuario demo para desarrollo local.
-- Frontend React con rutas, login demo, contexto de autenticación, layout operativo, dashboard, página de estado del sistema, CRUD inicial de maestros logísticos y módulo operativo de encomiendas.
+- Frontend React con rutas, login demo, contexto de autenticación, layout operativo, dashboard, página de estado del sistema, CRUD inicial de maestros logísticos, módulo operativo de encomiendas y módulo frontend de rutas.
 - Backend de maestros logísticos iniciales con apps `parties`, `locations` y `fleet`.
 - Backend operativo de encomiendas con app `logistics`, modelos `Shipment`, `Package` y `TrackingEvent`, endpoints JWT y acción `change-status`.
 - Backend de rutas con app `routing`, modelos `Route`, `RouteStop` y `RouteShipment`, endpoints JWT, soft delete, acciones de cambio de estado, asignación de encomiendas, recálculo de resumen y reordenamiento manual de paradas.
+- Frontend de rutas con listados, formularios, detalle operativo, administración de paradas, asignación de encomiendas y acciones custom de ruta/parada.
 
-No incluye todavía frontend de rutas, app conductor, evidencias de entrega, incidencias avanzadas, documentos internos, optimización automática de rutas, mapas externos ni GPS en tiempo real. Esos módulos quedan pendientes para próximos prompts.
+No incluye todavía app conductor, evidencias de entrega, fotos, firma digital, incidencias avanzadas, documentos internos, optimización automática de rutas, mapas externos ni GPS en tiempo real. Esos módulos quedan pendientes para próximos prompts.

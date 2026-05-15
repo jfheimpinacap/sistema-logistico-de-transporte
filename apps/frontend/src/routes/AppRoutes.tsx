@@ -19,6 +19,7 @@ import { OperationsHomePage } from '../pages/operations/OperationsHomePage'
 import { PackagesPage } from '../pages/operations/PackagesPage'
 import { ShipmentsPage } from '../pages/operations/ShipmentsPage'
 import { TrackingEventsPage } from '../pages/operations/TrackingEventsPage'
+import { RoutesPage } from '../pages/routing/RoutesPage'
 
 type RouterContextValue = {
   path: string
@@ -104,6 +105,8 @@ function renderProtectedPage(path: string) {
       return <PackagesPage />
     case '/operations/tracking':
       return <TrackingEventsPage />
+    case '/operations/routes':
+      return <RoutesPage />
     default:
       return <NotFoundPage />
   }
