@@ -4,7 +4,7 @@ Sistema logístico tipo TMS liviano para controlar transporte de mercancías, en
 
 ## Estado actual
 
-**Prompt 006 — Backend operativo de encomiendas, bultos y tracking**
+**Prompt 007 — Frontend operativo de encomiendas, bultos y tracking**
 
 El proyecto cuenta con:
 
@@ -17,8 +17,9 @@ El proyecto cuenta con:
 - CRUD frontend protegido para administrar clientes, contactos, zonas, direcciones, bodegas, tipos de vehículo, vehículos y conductores.
 - Seeds idempotentes para usuario demo, datos maestros logísticos demo y operaciones demo.
 - Backend operativo para encomiendas, bultos y eventos de tracking con cambio de estado auditado.
+- Frontend operativo protegido para administrar encomiendas, bultos, timeline de tracking y cambio manual de estado.
 
-> El frontend de encomiendas queda para el **Prompt 007**. Rutas reales, paradas, app conductor, evidencias, incidencias avanzadas, documentos internos, optimización y GPS quedan para próximos prompts.
+> Rutas reales, paradas, app conductor, evidencias, incidencias avanzadas, documentos internos, optimización y GPS quedan para próximos prompts.
 
 ## Stack técnico
 
@@ -150,6 +151,10 @@ El comando sin argumentos asume `dev`. En Windows intenta abrir backend y fronte
 - `GET /masters/vehicle-types` — CRUD frontend de tipos de vehículo.
 - `GET /masters/vehicles` — CRUD frontend de vehículos.
 - `GET /masters/drivers` — CRUD frontend de conductores.
+- `GET /operations` — índice del módulo operativo de encomiendas, bultos y tracking.
+- `GET /operations/shipments` — administración frontend de encomiendas con filtros, detalle y cambio de estado.
+- `GET /operations/packages` — administración frontend de bultos asociados a encomiendas.
+- `GET /operations/tracking` — consulta frontend de eventos de tracking.
 
 ## Endpoints backend disponibles
 
@@ -230,7 +235,7 @@ curl -X POST http://localhost:8002/api/shipments/1/change-status/ \
 ```
 
 
-## Flujo de prueba del Prompt 006
+## Flujo de prueba del Prompt 007
 
 ```bash
 py start.py prepare
@@ -242,7 +247,17 @@ Luego abre el frontend en `http://localhost:5175`, entra a `/login` con:
 - Usuario demo: `demo`
 - Password: `demo1234`
 
-Después abre `/masters` para entrar al índice de maestros y prueba altas, ediciones, búsqueda, filtro por estado y desactivación de registros.
+Después abre `/operations/shipments` para listar encomiendas, crear/editar registros, revisar detalle, administrar bultos relacionados y cambiar estados. Si faltan datos base, entra primero a `/masters` para crear clientes, direcciones y bodegas.
+
+### Endpoints usados por el frontend operativo
+
+El frontend del Prompt 007 consume estos endpoints protegidos:
+
+- `GET|POST /api/shipments/` y `GET|PATCH|DELETE /api/shipments/{id}/`
+- `GET|POST /api/packages/` y `GET|PATCH|DELETE /api/packages/{id}/`
+- `GET|POST /api/tracking-events/` y `GET /api/tracking-events/{id}/`
+- `POST /api/shipments/{id}/change-status/`
+
 
 ## Credenciales demo
 
@@ -302,8 +317,8 @@ Incluye únicamente:
 - Endpoint de salud `GET /api/health/`.
 - Endpoints JWT de login, refresh y usuario actual.
 - Usuario demo para desarrollo local.
-- Frontend React con rutas, login demo, contexto de autenticación, layout operativo, dashboard, página de estado del sistema y CRUD inicial de maestros logísticos.
+- Frontend React con rutas, login demo, contexto de autenticación, layout operativo, dashboard, página de estado del sistema, CRUD inicial de maestros logísticos y módulo operativo de encomiendas.
 - Backend de maestros logísticos iniciales con apps `parties`, `locations` y `fleet`.
 - Backend operativo de encomiendas con app `logistics`, modelos `Shipment`, `Package` y `TrackingEvent`, endpoints JWT y acción `change-status`.
 
-No incluye todavía frontend de encomiendas, rutas reales, paradas, asignación de vehículos/conductores a rutas, app conductor, evidencias de entrega, incidencias avanzadas, documentos internos, optimización de rutas ni GPS. El frontend de encomiendas queda pendiente para el **Prompt 007**.
+No incluye todavía rutas reales, paradas, asignación de vehículos/conductores a rutas, app conductor, evidencias de entrega, incidencias avanzadas, documentos internos, optimización de rutas ni GPS. Esos módulos quedan pendientes para próximos prompts.
