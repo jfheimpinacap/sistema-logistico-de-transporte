@@ -4,7 +4,7 @@ Sistema logístico tipo TMS liviano para controlar transporte de mercancías, en
 
 ## Estado actual
 
-**Prompt 005 — Frontend CRUD de maestros logísticos**
+**Prompt 006 — Backend operativo de encomiendas, bultos y tracking**
 
 El proyecto cuenta con:
 
@@ -15,9 +15,10 @@ El proyecto cuenta con:
 - Frontend operativo base con login demo, layout, dashboard inicial y página de health.
 - APIs REST autenticadas para maestros logísticos iniciales: clientes, contactos, zonas, direcciones, bodegas, tipos de vehículo, vehículos y conductores.
 - CRUD frontend protegido para administrar clientes, contactos, zonas, direcciones, bodegas, tipos de vehículo, vehículos y conductores.
-- Seeds idempotentes para usuario demo y datos maestros logísticos demo.
+- Seeds idempotentes para usuario demo, datos maestros logísticos demo y operaciones demo.
+- Backend operativo para encomiendas, bultos y eventos de tracking con cambio de estado auditado.
 
-> Encomiendas, bultos, rutas reales, paradas, tracking, incidencias, documentos internos, optimización, GPS y app conductor quedan para próximos prompts.
+> El frontend de encomiendas queda para el **Prompt 007**. Rutas reales, paradas, app conductor, evidencias, incidencias avanzadas, documentos internos, optimización y GPS quedan para próximos prompts.
 
 ## Stack técnico
 
@@ -41,6 +42,7 @@ sistema-logistico-de-transporte/
 │   │   │   ├── core/
 │   │   │   ├── fleet/
 │   │   │   ├── locations/
+│   │   │   ├── logistics/
 │   │   │   └── parties/
 │   │   ├── config/
 │   │   ├── manage.py
@@ -109,6 +111,7 @@ Comandos equivalentes para el backend:
 python apps/backend/manage.py migrate
 python apps/backend/manage.py seed_demo_user
 python apps/backend/manage.py seed_demo_logistics
+python apps/backend/manage.py seed_demo_operations
 ```
 
 ## Ejecutar el proyecto
@@ -208,8 +211,26 @@ curl "http://localhost:8002/api/vehicles/?search=CAMI&is_active=true" \
   -H "Authorization: Bearer <access_token>"
 ```
 
+### Operaciones protegidas con JWT
 
-## Flujo de prueba del Prompt 005
+Todos los endpoints siguientes requieren header `Authorization: Bearer <access_token>` y permiten CRUD básico del módulo operativo:
+
+- `/api/shipments/` — encomiendas/envíos principales. Soporta `search`, `current_status`, `priority`, `service_type`, `is_active` y `customer`.
+- `/api/packages/` — bultos asociados a encomiendas. Soporta filtros `shipment`, `status` e `is_active`.
+- `/api/tracking-events/` — historial de tracking ordenado por defecto del más reciente al más antiguo (`occurred_at` descendente). Soporta filtros `shipment`, `package` y `status`.
+- `/api/shipments/{id}/change-status/` — acción `POST` para actualizar `current_status` de la encomienda y registrar un `TrackingEvent`.
+
+Ejemplo de cambio de estado:
+
+```bash
+curl -X POST http://localhost:8002/api/shipments/1/change-status/ \
+  -H "Authorization: Bearer <access_token>" \
+  -H "Content-Type: application/json" \
+  -d '{"status":"in_transit","title":"En tránsito","description":"La encomienda salió a reparto","location_text":"Bodega Santiago"}'
+```
+
+
+## Flujo de prueba del Prompt 006
 
 ```bash
 py start.py prepare
@@ -241,7 +262,15 @@ Los datos maestros logísticos demo se crean de forma idempotente con:
 python apps/backend/manage.py seed_demo_logistics
 ```
 
-Este seed crea datos mínimos de ejemplo:
+Las encomiendas, bultos y eventos de tracking demo se crean de forma idempotente con:
+
+```bash
+python apps/backend/manage.py seed_demo_operations
+```
+
+Este seed crea 3 encomiendas demo, 1 o 2 bultos por encomienda y eventos iniciales en estados `received`, `classified` y `ready_for_route`.
+
+El seed de maestros crea datos mínimos de ejemplo:
 
 - 2 zonas.
 - 2 direcciones.
@@ -261,6 +290,7 @@ python apps/backend/manage.py makemigrations --check
 python apps/backend/manage.py migrate
 python apps/backend/manage.py seed_demo_user
 python apps/backend/manage.py seed_demo_logistics
+python apps/backend/manage.py seed_demo_operations
 ```
 
 ## Alcance actual
@@ -274,5 +304,6 @@ Incluye únicamente:
 - Usuario demo para desarrollo local.
 - Frontend React con rutas, login demo, contexto de autenticación, layout operativo, dashboard, página de estado del sistema y CRUD inicial de maestros logísticos.
 - Backend de maestros logísticos iniciales con apps `parties`, `locations` y `fleet`.
+- Backend operativo de encomiendas con app `logistics`, modelos `Shipment`, `Package` y `TrackingEvent`, endpoints JWT y acción `change-status`.
 
-No incluye todavía encomiendas, bultos, rutas reales, paradas, tracking de paquetes, incidencias, documentos internos, optimización de rutas, GPS ni app conductor. Eso queda pendiente para próximos prompts, comenzando en el **Prompt 006**.
+No incluye todavía frontend de encomiendas, rutas reales, paradas, asignación de vehículos/conductores a rutas, app conductor, evidencias de entrega, incidencias avanzadas, documentos internos, optimización de rutas ni GPS. El frontend de encomiendas queda pendiente para el **Prompt 007**.

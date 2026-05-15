@@ -112,6 +112,15 @@ def prepare() -> int:
                     "Verifica dependencias, migraciones o disponibilidad del comando."
                 )
             exit_code = exit_code or logistics_seed_code
+
+            print("[PREPARE] Creando o actualizando encomiendas demo...")
+            operations_seed_code = run_manage(["seed_demo_operations"])
+            if operations_seed_code != 0:
+                print(
+                    "[WARN] No se pudieron sembrar encomiendas demo. "
+                    "Verifica dependencias, migraciones o disponibilidad del comando."
+                )
+            exit_code = exit_code or operations_seed_code
     else:
         print("[WARN] Se omiten migraciones y usuario demo porque el backend no quedó listo.")
 

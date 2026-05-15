@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     "apps.parties",
     "apps.locations",
     "apps.fleet",
+    "apps.logistics",
 ]
 
 MIDDLEWARE = [
