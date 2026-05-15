@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     "apps.fleet",
     "apps.logistics",
     "apps.routing",
+    "apps.geo",
     "apps.fieldops",
     "apps.documents",
     "apps.reports",

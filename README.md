@@ -4,7 +4,7 @@ Sistema logístico tipo TMS liviano para controlar transporte de mercancías, en
 
 ## Estado actual
 
-**Prompt 019 — QA funcional y pruebas manuales guiadas**
+**Prompt 020 — Backend de georreferenciación base y cálculo simple de distancias**
 
 El proyecto cuenta con:
 
@@ -32,8 +32,9 @@ El proyecto cuenta con:
 - Documento de cierre de fase MVP operativa en `docs/FASE_MVP_OPERATIVA.md`.
 - Documentación QA del MVP operativo con guía manual, checklist rápida y registro de bugs conocidos.
 - Pruebas smoke backend para healthcheck, login demo, endpoints protegidos clave y exportaciones CSV.
+- Backend de georreferenciación base con app `geo`, validación de coordenadas, cálculo Haversine, estimación simple de duración, diagnósticos de direcciones y resúmenes geográficos de rutas.
 
-> La Fase MVP Operativa está lista para prueba manual guiada. La exportación genera CSV compatible con Excel, no archivos XLSX reales. XLSX real, PDF real, gráficos con librerías externas, mapas, GPS en tiempo real, optimización automática, integración SII, facturación, contabilidad, modo offline y app móvil nativa quedan para próximos prompts.
+> La Fase MVP Operativa está lista para prueba manual guiada. La exportación genera CSV compatible con Excel, no archivos XLSX reales. El Prompt 020 agrega solo backend geográfico interno: las distancias son lineales estimadas con Haversine y no consideran calles, tráfico, horarios, restricciones ni peajes. No hay integración aún con mapas externos ni optimización automática. El frontend geográfico/mapa visual queda para Prompt 021.
 
 ## Stack técnico
 
@@ -58,6 +59,7 @@ sistema-logistico-de-transporte/
 │   │   │   ├── documents/
 │   │   │   ├── fieldops/
 │   │   │   ├── fleet/
+│   │   │   ├── geo/
 │   │   │   ├── locations/
 │   │   │   ├── logistics/
 │   │   │   ├── parties/
@@ -141,6 +143,7 @@ python apps/backend/manage.py seed_demo_operations
 python apps/backend/manage.py seed_demo_routes
 python apps/backend/manage.py seed_demo_fieldops
 python apps/backend/manage.py seed_demo_documents
+python apps/backend/manage.py seed_demo_geo
 ```
 
 ## Ejecutar el proyecto
@@ -170,7 +173,7 @@ py start.py prepare
 py start.py dev
 ```
 
-Luego abrir `/login`, ingresar con usuario demo `demo` y password `demo1234`, abrir `/operations` o `/reports`, aplicar filtros principales y descargar CSV desde los listados operativos o reportes. La descarga es CSV compatible con Excel, no XLSX real. Para el resumen del cierre MVP y la prueba manual guiada, revisar `docs/FASE_MVP_OPERATIVA.md`, `docs/QA_MVP_OPERATIVA.md`, `docs/CHECKLIST_QA_RAPIDA.md` y `docs/BUGS_CONOCIDOS.md`.
+Para probar la base geo del Prompt 020, carga `python apps/backend/manage.py seed_demo_geo`, inicia sesión y consume los endpoints `/api/geo/*` con JWT. Luego abrir `/login`, ingresar con usuario demo `demo` y password `demo1234`, abrir `/operations` o `/reports`, aplicar filtros principales y descargar CSV desde los listados operativos o reportes. La descarga es CSV compatible con Excel, no XLSX real. Para el resumen del cierre MVP y la prueba manual guiada, revisar `docs/FASE_MVP_OPERATIVA.md`, `docs/QA_MVP_OPERATIVA.md`, `docs/CHECKLIST_QA_RAPIDA.md` y `docs/BUGS_CONOCIDOS.md`.
 
 El comando sin argumentos asume `dev`. En Windows intenta abrir backend y frontend en terminales separadas.
 
@@ -212,6 +215,7 @@ El comando sin argumentos asume `dev`. En Windows intenta abrir backend y fronte
 - `docs/QA_MVP_OPERATIVA.md` contiene la guía paso a paso para validar manualmente autenticación, maestros, operación, modo conductor, evidencias, incidencias, documentos, reportes, CSV y errores esperados.
 - `docs/CHECKLIST_QA_RAPIDA.md` entrega una lista breve de verificación para pasadas rápidas del MVP.
 - `docs/BUGS_CONOCIDOS.md` registra bugs bloqueantes o menores conocidos; al cierre del Prompt 019 no hay bugs bloqueantes detectados por la revisión automatizada disponible.
+- `docs/GEO_BASE.md` documenta la base de georreferenciación del Prompt 020, endpoints, comando demo y limitaciones de Haversine.
 - Los documentos logísticos del MVP son internos/provisorios: no emiten documentos tributarios SII reales ni guía de despacho electrónica real.
 - La Fase MVP Operativa ya está lista para prueba manual guiada siguiendo los documentos QA.
 
@@ -328,6 +332,44 @@ Comando demo idempotente:
 python apps/backend/manage.py seed_demo_routes
 ```
 
+### Georreferenciación base protegida con JWT
+
+Los endpoints geo se mantienen separados bajo `/api/geo/` para aislar diagnósticos y cálculos internos de futuras integraciones de mapas:
+
+- `GET /api/geo/address-check/` — revisa direcciones con coordenadas válidas, faltantes o inválidas. Soporta `address_id` y `only_missing=true|false`.
+- `POST /api/geo/calculate-distance/` — calcula distancia lineal Haversine entre dos coordenadas y duración estimada por velocidad promedio.
+- `GET /api/geo/routes/{route_id}/distance-summary/` — calcula un resumen geográfico de una ruta según sus paradas activas ordenadas por `sequence`.
+- `POST /api/geo/routes/{route_id}/update-estimates/` — calcula el resumen y actualiza `estimated_distance_km` y `estimated_duration_minutes` en la ruta, sin reordenar ni optimizar paradas.
+
+Comando demo idempotente de coordenadas:
+
+```bash
+python apps/backend/manage.py seed_demo_geo
+```
+
+Opción explícita para sobrescribir coordenadas existentes en direcciones demo coincidentes:
+
+```bash
+python apps/backend/manage.py seed_demo_geo --force
+```
+
+Aclaraciones importantes:
+
+- Las distancias son lineales estimadas con fórmula Haversine.
+- No consideran calles, tráfico, horarios, restricciones ni peajes.
+- No hay integración con Google Maps, Mapbox, OpenStreetMap, OSRM u OpenRouteService.
+- No hay optimización automática todavía.
+- El frontend geográfico/mapa visual queda para **Prompt 021**.
+
+Ejemplo de cálculo simple:
+
+```bash
+curl -X POST http://localhost:8002/api/geo/calculate-distance/ \
+  -H "Authorization: Bearer <access_token>" \
+  -H "Content-Type: application/json" \
+  -d '{"from":{"latitude":-33.45,"longitude":-70.66},"to":{"latitude":-33.44,"longitude":-70.65},"average_speed_kmh":35}'
+```
+
 Ejemplo de asignación de encomiendas a ruta:
 
 ```bash
@@ -371,6 +413,7 @@ Comando demo idempotente:
 
 ```bash
 python apps/backend/manage.py seed_demo_documents
+python apps/backend/manage.py seed_demo_geo
 ```
 
 Ejemplo de generación desde ruta:
