@@ -15,6 +15,7 @@ urlpatterns = [
     path("api/", include("apps.routing.urls")),
     path("api/", include("apps.fieldops.urls")),
     path("api/", include("apps.documents.urls")),
+    path("api/", include("apps.reports.urls")),
 ]
 
 if settings.DEBUG:
