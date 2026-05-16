@@ -4,6 +4,7 @@ const mainItems = [
   { label: 'Dashboard', path: '/', icon: '⌂' },
   { label: 'Modo conductor', path: '/driver', icon: '▣' },
   { label: 'Estado del sistema', path: '/health', icon: '◉' },
+  { label: 'Georreferenciación', path: '/geo', icon: '⌖' },
 ]
 
 

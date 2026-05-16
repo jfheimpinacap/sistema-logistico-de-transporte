@@ -4,7 +4,7 @@ Sistema logístico tipo TMS liviano para controlar transporte de mercancías, en
 
 ## Estado actual
 
-**Prompt 020 — Backend de georreferenciación base y cálculo simple de distancias**
+**Prompt 021 — Frontend geográfico base y diagnóstico de coordenadas/rutas**
 
 El proyecto cuenta con:
 
@@ -33,8 +33,9 @@ El proyecto cuenta con:
 - Documentación QA del MVP operativo con guía manual, checklist rápida y registro de bugs conocidos.
 - Pruebas smoke backend para healthcheck, login demo, endpoints protegidos clave y exportaciones CSV.
 - Backend de georreferenciación base con app `geo`, validación de coordenadas, cálculo Haversine, estimación simple de duración, diagnósticos de direcciones y resúmenes geográficos de rutas.
+- Frontend protegido de georreferenciación base en `/geo`, con diagnóstico de direcciones, calculadora manual Haversine, resumen de distancia por ruta, segmentos entre paradas y actualización de estimaciones.
 
-> La Fase MVP Operativa está lista para prueba manual guiada. La exportación genera CSV compatible con Excel, no archivos XLSX reales. El Prompt 020 agrega solo backend geográfico interno: las distancias son lineales estimadas con Haversine y no consideran calles, tráfico, horarios, restricciones ni peajes. No hay integración aún con mapas externos ni optimización automática. El frontend geográfico/mapa visual queda para Prompt 021.
+> La Fase MVP Operativa está lista para prueba manual guiada. La exportación genera CSV compatible con Excel, no archivos XLSX reales. El Prompt 021 agrega frontend geográfico base sobre el backend interno: las distancias son lineales estimadas con Haversine y no consideran calles, tráfico, horarios, restricciones ni peajes. No hay integración aún con mapas externos ni optimización automática.
 
 ## Stack técnico
 
@@ -173,7 +174,21 @@ py start.py prepare
 py start.py dev
 ```
 
-Para probar la base geo del Prompt 020, carga `python apps/backend/manage.py seed_demo_geo`, inicia sesión y consume los endpoints `/api/geo/*` con JWT. Luego abrir `/login`, ingresar con usuario demo `demo` y password `demo1234`, abrir `/operations` o `/reports`, aplicar filtros principales y descargar CSV desde los listados operativos o reportes. La descarga es CSV compatible con Excel, no XLSX real. Para el resumen del cierre MVP y la prueba manual guiada, revisar `docs/FASE_MVP_OPERATIVA.md`, `docs/QA_MVP_OPERATIVA.md`, `docs/CHECKLIST_QA_RAPIDA.md` y `docs/BUGS_CONOCIDOS.md`.
+Flujo sugerido para probar la vista geográfica del Prompt 021:
+
+```bash
+py start.py prepare
+py start.py dev
+```
+
+1. Abrir `/login`.
+2. Iniciar sesión con usuario demo `demo` y password `demo1234`.
+3. Abrir `/geo`.
+4. Revisar direcciones con coordenadas y direcciones faltantes/invalidas.
+5. Calcular una distancia manual entre dos coordenadas.
+6. Seleccionar una ruta demo, ver resumen de distancia, revisar segmentos y actualizar estimaciones.
+
+La descarga operativa sigue siendo CSV compatible con Excel, no XLSX real. Para el resumen del cierre MVP y la prueba manual guiada, revisar `docs/FASE_MVP_OPERATIVA.md`, `docs/QA_MVP_OPERATIVA.md`, `docs/CHECKLIST_QA_RAPIDA.md` y `docs/BUGS_CONOCIDOS.md`.
 
 El comando sin argumentos asume `dev`. En Windows intenta abrir backend y frontend en terminales separadas.
 
@@ -183,6 +198,7 @@ El comando sin argumentos asume `dev`. En Windows intenta abrir backend y fronte
 - `GET /` — dashboard operativo base, protegido por autenticación.
 - `GET /health` — estado del sistema conectado a `GET /api/health/`, protegido por autenticación.
 - `GET /driver` — modo conductor responsive para operar rutas, paradas, evidencias e incidencias desde móvil.
+- `GET /geo` — diagnóstico geográfico base para direcciones, cálculo Haversine manual, resumen de rutas, segmentos y actualización de estimaciones lineales.
 - `GET /masters` — índice de maestros logísticos, protegido por autenticación.
 - `GET /masters/customers` — CRUD frontend de clientes.
 - `GET /masters/contacts` — CRUD frontend de contactos.
@@ -215,7 +231,7 @@ El comando sin argumentos asume `dev`. En Windows intenta abrir backend y fronte
 - `docs/QA_MVP_OPERATIVA.md` contiene la guía paso a paso para validar manualmente autenticación, maestros, operación, modo conductor, evidencias, incidencias, documentos, reportes, CSV y errores esperados.
 - `docs/CHECKLIST_QA_RAPIDA.md` entrega una lista breve de verificación para pasadas rápidas del MVP.
 - `docs/BUGS_CONOCIDOS.md` registra bugs bloqueantes o menores conocidos; al cierre del Prompt 019 no hay bugs bloqueantes detectados por la revisión automatizada disponible.
-- `docs/GEO_BASE.md` documenta la base de georreferenciación del Prompt 020, endpoints, comando demo y limitaciones de Haversine.
+- `docs/GEO_BASE.md` documenta la base de georreferenciación del Prompt 020/021, endpoints, vista frontend `/geo`, comando demo y limitaciones de Haversine.
 - Los documentos logísticos del MVP son internos/provisorios: no emiten documentos tributarios SII reales ni guía de despacho electrónica real.
 - La Fase MVP Operativa ya está lista para prueba manual guiada siguiendo los documentos QA.
 
@@ -359,7 +375,7 @@ Aclaraciones importantes:
 - No consideran calles, tráfico, horarios, restricciones ni peajes.
 - No hay integración con Google Maps, Mapbox, OpenStreetMap, OSRM u OpenRouteService.
 - No hay optimización automática todavía.
-- El frontend geográfico/mapa visual queda para **Prompt 021**.
+- La vista frontend `/geo` permite diagnosticar coordenadas y distancias lineales. El mapa visual, cálculo por calles y optimización quedan para prompts posteriores.
 
 Ejemplo de cálculo simple:
 
@@ -649,7 +665,8 @@ Incluye únicamente:
 - Frontend de documentos internos con página `/operations/documents`, vista `/operations/documents/print`, servicio autenticado, tipos TypeScript, tablas, formularios, paneles de acciones/generación/detalle/líneas y advertencias SII visibles.
 - Modo conductor responsive en `/driver` con selección de ruta, resumen, acciones de inicio/completado, paradas ordenadas, cambio de estado de parada, encomiendas asociadas, evidencias, incidencias, archivos y geolocalización puntual opcional.
 - Frontend de reportes operativos en `/reports` y rutas específicas, con métricas, filtros, manejo amigable de errores y exportación CSV compatible con Excel.
+- Frontend geográfico base en `/geo`, con tarjetas, tablas HTML, calculadora Haversine, resumen de rutas y actualización de estimaciones lineales sin dependencias externas de mapas.
 - Documentación QA manual y checklist de validación de la Fase MVP Operativa.
 - Smoke tests backend básicos para validar disponibilidad del MVP operativo.
 
-No incluye todavía gráficos con librerías externas, exportación XLSX real, PDF real, app móvil nativa, modo offline, sincronización offline, firma dibujada, firma electrónica avanzada, optimización automática de rutas, mapas externos, integración SII, facturación, contabilidad ni GPS en tiempo real. Esos módulos quedan pendientes para próximos prompts.
+No incluye todavía gráficos con librerías externas, exportación XLSX real, PDF real, app móvil nativa, modo offline, sincronización offline, firma dibujada, firma electrónica avanzada, optimización automática de rutas, mapa visual interactivo, mapas externos, cálculo real por calles, geocodificación automática por API externa, integración SII, facturación, contabilidad ni GPS en tiempo real. Esos módulos quedan pendientes para próximos prompts.
