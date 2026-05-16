@@ -4,7 +4,7 @@ Sistema logístico tipo TMS liviano para controlar transporte de mercancías, en
 
 ## Estado actual
 
-**Prompt 022 — Mapa esquemático interno de rutas y coordenadas**
+**Prompt 023 — QA visual y ajustes del mapa esquemático**
 
 El proyecto cuenta con:
 
@@ -35,8 +35,9 @@ El proyecto cuenta con:
 - Backend de georreferenciación base con app `geo`, validación de coordenadas, cálculo Haversine, estimación simple de duración, diagnósticos de direcciones y resúmenes geográficos de rutas.
 - Frontend protegido de georreferenciación base en `/geo`, con diagnóstico de direcciones, calculadora manual Haversine, resumen de distancia por ruta, segmentos entre paradas y actualización de estimaciones.
 - Frontend protegido de mapa esquemático en `/geo/map`, con visualización SVG interna de paradas georreferenciadas, segmentos lineales, etiquetas por secuencia, paradas sin coordenadas y actualización de estimaciones desde la vista.
+- QA visual del mapa esquemático documentado en `docs/QA_GEO_MAPA_ESQUEMATICO.md`, con checklist de rutas sin paradas, una parada, muchas paradas, coordenadas faltantes, coordenadas iguales, puntos cercanos, errores y vista responsive.
 
-> La Fase MVP Operativa está lista para prueba manual guiada. La exportación genera CSV compatible con Excel, no archivos XLSX reales. El Prompt 022 agrega un mapa esquemático SVG sobre el backend geo interno: las distancias son lineales estimadas con Haversine y no consideran calles, tráfico, horarios, restricciones ni peajes. No usa Google Maps, Mapbox, OpenStreetMap ni servicios externos, y no hay optimización automática.
+> La Fase MVP Operativa está lista para prueba manual guiada. La exportación genera CSV compatible con Excel, no archivos XLSX reales. El Prompt 023 mantiene el mapa esquemático SVG sobre el backend geo interno y agrega QA visual/robustez: las distancias son lineales estimadas con Haversine y no consideran calles, tráfico, horarios, restricciones ni peajes. No usa Google Maps, Mapbox, OpenStreetMap ni servicios externos, no calcula rutas por calles y no hay optimización automática.
 
 ## Stack técnico
 

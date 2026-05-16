@@ -100,9 +100,11 @@ La actualización no cambia el orden de paradas, no optimiza la ruta y no modifi
 
 ## Mapa esquemático interno
 
-El Prompt 022 agrega `/geo/map`, una vista protegida de mapa técnico basada en SVG/HTML/CSS, sin dependencias nuevas y sin librerías de mapas. La pantalla permite seleccionar una ruta, configurar velocidad promedio, consultar el resumen de distancia, dibujar paradas con coordenadas, unirlas por segmentos lineales según secuencia, revisar etiquetas y seleccionar puntos para ver detalle.
+El Prompt 022 agrega `/geo/map`, una vista protegida de mapa técnico basada en SVG/HTML/CSS, sin dependencias nuevas y sin librerías de mapas. El Prompt 023 agrega QA visual y ajustes de robustez para rutas sin paradas, una sola parada, muchas paradas, coordenadas faltantes, coordenadas inválidas, coordenadas iguales o puntos muy cercanos. La pantalla permite seleccionar una ruta, configurar velocidad promedio, consultar el resumen de distancia, dibujar paradas con coordenadas, unirlas por segmentos lineales según secuencia, revisar u ocultar etiquetas y seleccionar puntos para ver detalle.
 
-La proyección convierte cada longitud en coordenada X y cada latitud en coordenada Y dentro del SVG. El eje Y se invierte: una latitud mayor se dibuja más arriba. El cálculo usa límites mínimos/máximos de las coordenadas disponibles, agrega padding para separar los puntos del borde y expande artificialmente rangos cuando hay un solo punto o coordenadas iguales. Los puntos sin latitud/longitud válida no se proyectan; se muestran en una lista aparte con la instrucción de completar latitud/longitud en **Maestros > Direcciones**.
+La proyección convierte cada longitud en coordenada X y cada latitud en coordenada Y dentro del SVG. El eje Y se invierte: una latitud mayor se dibuja más arriba. El cálculo usa límites mínimos/máximos de las coordenadas disponibles, agrega padding para separar los puntos del borde y expande rangos cero o demasiado pequeños cuando hay un solo punto, latitudes iguales, longitudes iguales o puntos muy cercanos. También descarta valores fuera de rango para evitar `NaN`/`Infinity` y aplica una separación visual mínima para puntos solapados. Los puntos sin latitud/longitud válida no se proyectan ni se tratan como `(0, 0)`; se muestran en una lista aparte con la instrucción de completar latitud/longitud en **Maestros > Direcciones**.
+
+La guía de QA visual se mantiene en `docs/QA_GEO_MAPA_ESQUEMATICO.md`.
 
 La vista usa los endpoints existentes:
 

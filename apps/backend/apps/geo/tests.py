@@ -123,5 +123,7 @@ class GeoEndpointTests(TestCase):
         self.assertEqual(response.data["route_id"], self.route.id)
         self.assertEqual(response.data["stops_total"], 2)
         self.assertEqual(response.data["stops_with_coordinates"], 2)
+        self.assertEqual(len(response.data["stops"]), 2)
+        self.assertEqual(response.data["stops"][0]["sequence"], 1)
         self.assertEqual(len(response.data["segments"]), 1)
         self.assertGreater(response.data["distance_km"], 0)

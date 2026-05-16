@@ -81,6 +81,7 @@ export type RouteDistanceSummary = {
   stops_total?: Nullable<number>
   stops_with_coordinates?: Nullable<number>
   stops_missing_coordinates?: Nullable<number>
+  stops?: Nullable<RouteDistanceStopPayload[]>
   distance_km?: Nullable<number | string>
   estimated_duration_minutes?: Nullable<number>
   segments?: Nullable<RouteDistanceSegment[]>
@@ -156,6 +157,10 @@ export type RouteMapViewData = {
   points: GeoMapPoint[]
   segments: GeoMapSegment[]
   missing_points: GeoMapPoint[]
+  stops_total?: Nullable<number>
+  stops_with_coordinates?: Nullable<number>
+  stops_missing_coordinates?: Nullable<number>
+  invalid_points?: GeoMapPoint[]
   bounds?: Nullable<GeoMapBounds>
   distance_km?: Nullable<number | string>
   estimated_duration_minutes?: Nullable<number>
