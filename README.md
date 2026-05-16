@@ -4,7 +4,7 @@ Sistema logístico tipo TMS liviano para controlar transporte de mercancías, en
 
 ## Estado actual
 
-**Prompt 024 — Mejoras responsive del modo conductor web móvil**
+**Prompt 025 — Asociación User ↔ Driver base y rutas del conductor**
 
 El proyecto cuenta con:
 
@@ -23,6 +23,11 @@ El proyecto cuenta con:
 - Backend de evidencias de entrega e incidencias operativas con archivos en `media/`, acciones de revisión/resolución y tracking asociado.
 - Frontend protegido para administrar evidencias de entrega e incidencias operativas, incluyendo formularios con archivos opcionales, filtros, detalle y acciones custom.
 - Vista conductor web responsive en `/driver` mejorada para móvil: tarjetas grandes, botones táctiles, flujo de paradas, evidencia, incidencias y captura de ubicación puntual opcional.
+- Asociación base opcional `User ↔ Driver`: los conductores pueden vincularse a usuarios Django sin obligar a que todos los usuarios sean conductores ni que todos los conductores tengan login.
+- `Driver` incluye metadatos simples `user`, `driver_type` y `location_source` para distinguir conductor interno/externo y fuente esperada de ubicación puntual.
+- `GET /api/auth/me/` incluye `driver_profile` cuando el usuario autenticado tiene conductor asociado.
+- Nuevo endpoint `GET /api/routes/my-routes/` para obtener rutas activas del conductor vinculado, con fallback amigable para usuarios sin conductor asociado.
+- Seed idempotente `python apps/backend/manage.py seed_demo_driver_user` para crear `conductor` / `conductor1234` y vincularlo a un Driver demo.
 - Backend de documentos internos logísticos para manifiestos de carga, hojas de ruta, notas internas de traslado y comprobantes internos de entrega.
 - Frontend protegido de documentos internos en `/operations/documents`, con creación manual, edición, emisión interna, anulación, archivo, generación desde ruta/encomienda, líneas y vista imprimible HTML en `/operations/documents/print`.
 - Backend de reportes operativos con app `reports`, endpoints JWT de solo lectura y métricas consolidadas para encomiendas, bultos, rutas, paradas, conductores, vehículos, evidencias, incidencias y documentos internos.
@@ -37,7 +42,7 @@ El proyecto cuenta con:
 - Frontend protegido de mapa esquemático en `/geo/map`, con visualización SVG interna de paradas georreferenciadas, segmentos lineales, etiquetas por secuencia, paradas sin coordenadas y actualización de estimaciones desde la vista.
 - QA visual del mapa esquemático documentado en `docs/QA_GEO_MAPA_ESQUEMATICO.md`, con checklist de rutas sin paradas, una parada, muchas paradas, coordenadas faltantes, coordenadas iguales, puntos cercanos, errores y vista responsive.
 
-> La Fase MVP Operativa está lista para prueba manual guiada. La exportación genera CSV compatible con Excel, no archivos XLSX reales. El Prompt 023 mantiene el mapa esquemático SVG sobre el backend geo interno y agrega QA visual/robustez: las distancias son lineales estimadas con Haversine y no consideran calles, tráfico, horarios, restricciones ni peajes. No usa Google Maps, Mapbox, OpenStreetMap ni servicios externos, no calcula rutas por calles y no hay optimización automática.
+> La Fase MVP Operativa está lista para prueba manual guiada. La exportación genera CSV compatible con Excel, no archivos XLSX reales. El mapa esquemático SVG se mantiene sobre el backend geo interno: las distancias son lineales estimadas con Haversine y no consideran calles, tráfico, horarios, restricciones ni peajes. No usa Google Maps, Mapbox, OpenStreetMap ni servicios externos, no calcula rutas por calles y no hay optimización automática. Prompt 025 no agrega roles/permisos avanzados ni GPS continuo.
 
 ## Stack técnico
 
@@ -147,6 +152,7 @@ python apps/backend/manage.py seed_demo_routes
 python apps/backend/manage.py seed_demo_fieldops
 python apps/backend/manage.py seed_demo_documents
 python apps/backend/manage.py seed_demo_geo
+python apps/backend/manage.py seed_demo_driver_user
 ```
 
 ## Ejecutar el proyecto
@@ -169,7 +175,7 @@ Iniciar entorno de desarrollo local completo:
 py start.py dev
 ```
 
-Flujo sugerido para probar manualmente el MVP operativo (Prompt 019):
+Flujo sugerido para probar manualmente el MVP operativo y la asociación conductor (Prompt 025):
 
 ```bash
 py start.py prepare
@@ -190,6 +196,24 @@ py start.py dev
 5. Calcular una distancia manual entre dos coordenadas.
 6. Seleccionar una ruta demo, ver resumen de distancia, revisar segmentos y actualizar estimaciones.
 
+Flujo específico para probar “Mis rutas” del conductor:
+
+```bash
+py start.py prepare
+py start.py dev
+```
+
+1. Abrir `/login`.
+2. Iniciar sesión con usuario conductor demo `conductor` y password `conductor1234`.
+3. Abrir `/driver`.
+4. Validar la tarjeta **Perfil conductor**.
+5. Validar que el listado indique **Mis rutas** y muestre rutas filtradas por el conductor asociado.
+
+Credenciales demo:
+
+- Admin/demo general: `demo` / `demo1234`.
+- Conductor demo: `conductor` / `conductor1234`.
+
 La descarga operativa sigue siendo CSV compatible con Excel, no XLSX real. Para el resumen del cierre MVP y la prueba manual guiada, revisar `docs/FASE_MVP_OPERATIVA.md`, `docs/QA_MVP_OPERATIVA.md`, `docs/CHECKLIST_QA_RAPIDA.md` y `docs/BUGS_CONOCIDOS.md`.
 
 El comando sin argumentos asume `dev`. En Windows intenta abrir backend y frontend en terminales separadas.
@@ -197,9 +221,16 @@ El comando sin argumentos asume `dev`. En Windows intenta abrir backend y fronte
 
 ## Modo conductor web móvil
 
-Prompt 024 mejora la experiencia de `/driver` para celulares con layout de una columna, tarjetas grandes, acciones táctiles, formularios separados por secciones y captura puntual de ubicación. La vista conductor sigue siendo web responsive: no es una app nativa, no implementa offline y no realiza GPS en tiempo real ni tracking continuo. La ubicación se captura solo al presionar el botón correspondiente, por lo que conductores externos pueden operar desde navegador móvil sin depender de GPS instalado en el vehículo.
+Prompt 025 mantiene las mejoras responsive e incorpora la asociación base User ↔ Driver. `/driver` prioriza `GET /api/routes/my-routes/` cuando el usuario tiene `driver_profile`; si no, conserva modo demo/supervisor con rutas disponibles. Prompt 024 mejora la experiencia de `/driver` para celulares con layout de una columna, tarjetas grandes, acciones táctiles, formularios separados por secciones y captura puntual de ubicación. La vista conductor sigue siendo web responsive: no es una app nativa, no implementa offline y no realiza GPS en tiempo real ni tracking continuo. La ubicación se captura solo al presionar el botón correspondiente, por lo que conductores externos pueden operar desde navegador móvil sin depender de GPS instalado en el vehículo.
 
 Documento de uso: [`docs/MODO_CONDUCTOR_MOVIL.md`](docs/MODO_CONDUCTOR_MOVIL.md).
+
+### API conductor/autenticación
+
+- `GET /api/auth/me/` ahora devuelve `driver_profile` o `null`.
+- `GET /api/routes/my-routes/` devuelve rutas filtradas por el Driver vinculado al usuario autenticado y acepta filtros simples como `status`, `route_date` e `is_active`.
+- Usuarios sin conductor asociado reciben respuesta 200 con `driver_profile: null`, `results: []` y mensaje amigable; no hay roles/permisos avanzados todavía.
+- No hay GPS continuo ni tracking en tiempo real: conductores externos pueden reportar ubicación puntual desde web móvil, y algunos vehículos propios podrán usar GPS en fases futuras.
 
 ## Rutas frontend disponibles
 
@@ -370,6 +401,7 @@ Comando demo idempotente de coordenadas:
 
 ```bash
 python apps/backend/manage.py seed_demo_geo
+python apps/backend/manage.py seed_demo_driver_user
 ```
 
 Opción explícita para sobrescribir coordenadas existentes en direcciones demo coincidentes:
@@ -440,6 +472,7 @@ Comando demo idempotente:
 ```bash
 python apps/backend/manage.py seed_demo_documents
 python apps/backend/manage.py seed_demo_geo
+python apps/backend/manage.py seed_demo_driver_user
 ```
 
 Ejemplo de generación desde ruta:

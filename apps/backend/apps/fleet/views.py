@@ -23,6 +23,6 @@ class VehicleViewSet(MasterDataViewSet):
 class DriverViewSet(MasterDataViewSet):
     """CRUD API for drivers."""
 
-    queryset = Driver.objects.select_related("default_vehicle")
+    queryset = Driver.objects.select_related("default_vehicle", "user")
     serializer_class = DriverSerializer
-    search_fields = ("first_name", "last_name", "rut", "email", "phone", "license_class", "status")
+    search_fields = ("first_name", "last_name", "rut", "email", "phone", "license_class", "status", "user__username", "user__email")

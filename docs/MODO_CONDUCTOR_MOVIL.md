@@ -23,9 +23,19 @@ El modo conductor permite:
 - Conductores internos pueden operar vehículos propios de la empresa y registrar acciones desde el navegador móvil.
 - Conductores externos pueden operar desde la web móvil usando su propio vehículo.
 - El flujo actual no asume que todos los vehículos tengan GPS instalado.
-- Todavía no existe asociación formal `User ↔ Driver`; por ahora la vista muestra rutas disponibles/asignadas para operación.
+- Existe una asociación base opcional `User ↔ Driver`: un usuario puede estar vinculado a un conductor, pero también pueden existir usuarios no conductores y conductores sin usuario asociado.
 
-## 4. Ubicación
+
+## 4. Usuario vinculado a conductor
+
+- Un usuario autenticado puede estar asociado a un conductor mediante el perfil `driver_profile`.
+- Si el usuario está asociado, `/driver` prioriza **Mis rutas** y consulta `GET /api/routes/my-routes/` para mostrar rutas asignadas a ese conductor.
+- Si el usuario no está asociado a un conductor, el sistema conserva un modo demo/supervisor y muestra rutas disponibles para operación.
+- El usuario demo conductor se crea con `python apps/backend/manage.py seed_demo_driver_user` y usa credenciales `conductor` / `conductor1234`.
+- Conductores externos pueden operar desde web móvil con su propio vehículo; no se asume GPS instalado en todos los vehículos.
+- La ubicación actual sigue siendo puntual, capturada por acción del usuario, no continua.
+
+## 5. Ubicación
 
 - La ubicación se captura de forma puntual desde el navegador.
 - La captura ocurre solo cuando el conductor presiona **Capturar ubicación actual**.
@@ -33,7 +43,7 @@ El modo conductor permite:
 - No hay tracking continuo todavía.
 - Si el navegador no soporta geolocalización o el usuario deniega el permiso, los formularios pueden guardarse sin ubicación.
 
-## 5. Fuera de alcance
+## 6. Fuera de alcance
 
 Este modo web móvil no implementa todavía:
 
@@ -47,13 +57,13 @@ Este modo web móvil no implementa todavía:
 - Optimización automática de rutas.
 - Mapas reales.
 
-## 6. Flujo de prueba
+## 7. Flujo de prueba
 
 1. Ejecutar `py start.py prepare`.
 2. Ejecutar `py start.py dev`.
 3. Abrir `/login`.
-4. Iniciar sesión con `demo` / `demo1234`.
-5. Abrir `/driver`.
+4. Iniciar sesión con `conductor` / `conductor1234` para probar rutas filtradas por conductor, o con `demo` / `demo1234` para modo demo/supervisor.
+5. Abrir `/driver` y validar la tarjeta de perfil conductor o el aviso de usuario sin conductor asociado.
 6. Seleccionar una ruta disponible.
 7. Iniciar ruta.
 8. Revisar resumen, paradas y encomiendas.
@@ -64,10 +74,10 @@ Este modo web móvil no implementa todavía:
 13. Capturar ubicación puntual si se desea.
 14. Completar ruta.
 
-## 7. Próximas mejoras sugeridas
+## 8. Próximas mejoras sugeridas
 
-- Asociación formal `User ↔ Driver`.
-- Permisos específicos para conductor.
+- Roles/permisos específicos para conductor.
+- Administración completa de usuarios y vínculos conductor.
 - Mejoras PWA.
 - Modo offline y sincronización posterior.
 - App nativa Android/iOS.

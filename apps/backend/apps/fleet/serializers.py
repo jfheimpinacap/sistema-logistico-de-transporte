@@ -56,6 +56,10 @@ class DriverSerializer(serializers.ModelSerializer):
     """Serialize drivers for CRUD APIs."""
 
     default_vehicle_plate = serializers.CharField(source="default_vehicle.plate_number", read_only=True)
+    user_username = serializers.CharField(source="user.username", read_only=True)
+    user_email = serializers.EmailField(source="user.email", read_only=True)
+    driver_type_label = serializers.CharField(source="get_driver_type_display", read_only=True)
+    location_source_label = serializers.CharField(source="get_location_source_display", read_only=True)
 
     class Meta:
         """Serializer metadata."""
@@ -63,6 +67,9 @@ class DriverSerializer(serializers.ModelSerializer):
         model = Driver
         fields = (
             "id",
+            "user",
+            "user_username",
+            "user_email",
             "first_name",
             "last_name",
             "rut",
@@ -71,9 +78,22 @@ class DriverSerializer(serializers.ModelSerializer):
             "license_class",
             "default_vehicle",
             "default_vehicle_plate",
+            "driver_type",
+            "driver_type_label",
+            "location_source",
+            "location_source_label",
             "status",
             "is_active",
             "created_at",
             "updated_at",
         )
-        read_only_fields = ("id", "default_vehicle_plate", "created_at", "updated_at")
+        read_only_fields = (
+            "id",
+            "user_username",
+            "user_email",
+            "default_vehicle_plate",
+            "driver_type_label",
+            "location_source_label",
+            "created_at",
+            "updated_at",
+        )

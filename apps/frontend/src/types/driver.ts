@@ -1,3 +1,4 @@
+import type { DriverProfile } from './auth'
 import type { DeliveryProof, Incident } from './fieldops'
 import type { Package, Shipment } from './operations'
 import type { Route, RouteShipment, RouteStop, RoutingId } from './routing'
@@ -35,4 +36,12 @@ export type DriverRouteListParams = {
   search?: string
   status?: string
   driver?: RoutingId | ''
+  route_date?: string
+  is_active?: 'true' | 'false' | 'all' | boolean
+}
+
+export type MyDriverRoutesResponse = {
+  driver_profile: DriverProfile | null
+  results: Route[]
+  message?: string
 }

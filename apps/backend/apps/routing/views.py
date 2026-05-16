@@ -69,6 +69,59 @@ class RouteViewSet(viewsets.ModelViewSet):
                 queryset = queryset.filter(**{field_name: value})
         return apply_boolean_filter(queryset, "is_active", self.request.query_params.get("is_active"))
 
+    @action(detail=False, methods=["get"], url_path="my-routes")
+    def my_routes(self, request):
+        """Return active routes assigned to the driver linked to the authenticated user."""
+        driver_profile = getattr(request.user, "driver_profile", None)
+        if driver_profile is None:
+            return Response(
+                {
+                    "driver_profile": None,
+                    "results": [],
+                    "message": "El usuario autenticado no tiene conductor asociado.",
+                }
+            )
+
+        queryset = self.get_queryset().filter(driver=driver_profile)
+        if request.query_params.get("is_active") is None:
+            queryset = queryset.filter(is_active=True)
+
+        page = self.paginate_queryset(queryset)
+        serializer_context = self.get_serializer_context()
+        if page is not None:
+            serializer = self.get_serializer(page, many=True, context=serializer_context)
+            paginated = self.get_paginated_response(serializer.data)
+            paginated.data["driver_profile"] = {
+                "id": driver_profile.id,
+                "first_name": driver_profile.first_name,
+                "last_name": driver_profile.last_name,
+                "rut": driver_profile.rut,
+                "phone": driver_profile.phone,
+                "driver_type": driver_profile.driver_type,
+                "location_source": driver_profile.location_source,
+                "status": driver_profile.status,
+                "default_vehicle": driver_profile.default_vehicle_id,
+            }
+            return paginated
+
+        serializer = self.get_serializer(queryset, many=True, context=serializer_context)
+        return Response(
+            {
+                "driver_profile": {
+                    "id": driver_profile.id,
+                    "first_name": driver_profile.first_name,
+                    "last_name": driver_profile.last_name,
+                    "rut": driver_profile.rut,
+                    "phone": driver_profile.phone,
+                    "driver_type": driver_profile.driver_type,
+                    "location_source": driver_profile.location_source,
+                    "status": driver_profile.status,
+                    "default_vehicle": driver_profile.default_vehicle_id,
+                },
+                "results": serializer.data,
+            }
+        )
+
     def perform_destroy(self, instance):
         """Soft-delete routes by marking them inactive."""
         instance.is_active = False

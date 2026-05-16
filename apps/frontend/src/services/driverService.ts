@@ -1,14 +1,34 @@
+import { apiRequest } from './apiClient'
 import { createDeliveryProof as createFieldDeliveryProof, createIncident as createFieldIncident, listDeliveryProofs, listIncidents } from './fieldOpsService'
 import { getShipment, listPackages } from './operationsService'
 import { changeRouteStatus, changeRouteStopStatus as changeRoutingStopStatus, getReadableRoutingError, getRoute, listRoutes, listRouteShipments, listRouteStops } from './routingService'
 import type { DeliveryProofPayload, IncidentPayload } from '../types/fieldops'
 import type { ChangeRouteStopStatusPayload, RouteStatus, RoutingId } from '../types/routing'
-import type { DriverRouteListParams, DriverRouteWorkData } from '../types/driver'
+import type { DriverRouteListParams, DriverRouteWorkData, MyDriverRoutesResponse } from '../types/driver'
+
+
+function buildDriverRouteQuery(params: Omit<DriverRouteListParams, 'token'> = {}) {
+  const searchParams = new URLSearchParams()
+  Object.entries(params).forEach(([key, value]) => {
+    if (value === undefined || value === null || value === '' || value === 'all') return
+    if (typeof value === 'string' && value.trim() === '') return
+    searchParams.set(key, typeof value === 'boolean' ? String(value) : String(value).trim())
+  })
+  const query = searchParams.toString()
+  return query ? `?${query}` : ''
+}
 
 const DRIVER_ROUTE_STATUSES: RouteStatus[] = ['assigned', 'loaded', 'in_progress', 'planned']
 
 export function getReadableDriverError(error: unknown) {
   return getReadableRoutingError(error)
+}
+
+
+export async function listMyDriverRoutes(params: DriverRouteListParams): Promise<MyDriverRoutesResponse> {
+  const { token, status, ...filters } = params
+  const statusFilter = status && status !== 'all' ? { status } : {}
+  return apiRequest<MyDriverRoutesResponse>(`/routes/my-routes/${buildDriverRouteQuery({ is_active: true, ...filters, ...statusFilter })}`, { token })
 }
 
 export async function listDriverRoutes(params: DriverRouteListParams) {
