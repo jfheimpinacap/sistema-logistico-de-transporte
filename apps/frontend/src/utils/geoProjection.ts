@@ -1,20 +1,38 @@
 import type { GeoMapBounds, GeoMapPoint, GeoMapProjectionPoint, Nullable } from '../types/geo'
 
-function toNumber(value: Nullable<number | string>) {
+const MIN_COORDINATE_RANGE = 0.01
+const POINT_COLLISION_RADIUS = 18
+
+function toFiniteNumber(value: Nullable<number | string>) {
   if (value === null || value === undefined || value === '') return null
   const numeric = Number(value)
   return Number.isFinite(numeric) ? numeric : null
 }
 
+function isLatitude(value: number | null): value is number {
+  return value !== null && value >= -90 && value <= 90
+}
+
+function isLongitude(value: number | null): value is number {
+  return value !== null && value >= -180 && value <= 180
+}
+
+function normalizePointCoordinates(point: Pick<GeoMapPoint, 'latitude' | 'longitude'> | null | undefined): { latitude: number; longitude: number } | null {
+  if (!point) return null
+  const latitude = toFiniteNumber(point.latitude)
+  const longitude = toFiniteNumber(point.longitude)
+  if (!isLatitude(latitude) || !isLongitude(longitude)) return null
+  return { latitude, longitude }
+}
+
 export function hasUsableCoordinates(point: Pick<GeoMapPoint, 'latitude' | 'longitude'> | null | undefined) {
-  if (!point) return false
-  return toNumber(point.latitude) !== null && toNumber(point.longitude) !== null
+  return normalizePointCoordinates(point) !== null
 }
 
 export function buildGeoBounds(points: GeoMapPoint[]): GeoMapBounds | null {
   const validPoints = points
-    .map((point) => ({ latitude: toNumber(point.latitude), longitude: toNumber(point.longitude) }))
-    .filter((point): point is { latitude: number; longitude: number } => point.latitude !== null && point.longitude !== null)
+    .map(normalizePointCoordinates)
+    .filter((point): point is { latitude: number; longitude: number } => point !== null)
 
   if (validPoints.length === 0) return null
 
@@ -25,42 +43,59 @@ export function buildGeoBounds(points: GeoMapPoint[]): GeoMapBounds | null {
   let minLon = Math.min(...longitudes)
   let maxLon = Math.max(...longitudes)
 
-  if (minLat === maxLat) {
-    minLat -= 0.01
-    maxLat += 0.01
+  // Expand zero or tiny ranges so one-point, equal-latitude and equal-longitude routes never divide by zero.
+  if (maxLat - minLat < MIN_COORDINATE_RANGE) {
+    const center = (minLat + maxLat) / 2
+    minLat = center - MIN_COORDINATE_RANGE / 2
+    maxLat = center + MIN_COORDINATE_RANGE / 2
   }
-  if (minLon === maxLon) {
-    minLon -= 0.01
-    maxLon += 0.01
+  if (maxLon - minLon < MIN_COORDINATE_RANGE) {
+    const center = (minLon + maxLon) / 2
+    minLon = center - MIN_COORDINATE_RANGE / 2
+    maxLon = center + MIN_COORDINATE_RANGE / 2
   }
 
   return { minLat, maxLat, minLon, maxLon }
 }
 
 export function projectGeoPoint(point: GeoMapPoint, bounds: GeoMapBounds | null | undefined, width: number, height: number, padding = 32): GeoMapProjectionPoint | null {
-  const latitude = toNumber(point.latitude)
-  const longitude = toNumber(point.longitude)
-  if (!bounds || latitude === null || longitude === null) return null
+  const coordinates = normalizePointCoordinates(point)
+  if (!bounds || !coordinates) return null
 
-  const usableWidth = Math.max(width - padding * 2, 1)
-  const usableHeight = Math.max(height - padding * 2, 1)
-  const lonRange = bounds.maxLon - bounds.minLon || 1
-  const latRange = bounds.maxLat - bounds.minLat || 1
-  const x = padding + ((longitude - bounds.minLon) / lonRange) * usableWidth
-  const y = padding + ((bounds.maxLat - latitude) / latRange) * usableHeight
+  const safeWidth = Number.isFinite(width) && width > 0 ? width : 1
+  const safeHeight = Number.isFinite(height) && height > 0 ? height : 1
+  const safePadding = Math.max(Math.min(padding, safeWidth / 3, safeHeight / 3), 0)
+  const usableWidth = Math.max(safeWidth - safePadding * 2, 1)
+  const usableHeight = Math.max(safeHeight - safePadding * 2, 1)
+  const lonRange = Math.max(bounds.maxLon - bounds.minLon, MIN_COORDINATE_RANGE)
+  const latRange = Math.max(bounds.maxLat - bounds.minLat, MIN_COORDINATE_RANGE)
+  const x = safePadding + ((coordinates.longitude - bounds.minLon) / lonRange) * usableWidth
+  const y = safePadding + ((bounds.maxLat - coordinates.latitude) / latRange) * usableHeight
 
+  if (!Number.isFinite(x) || !Number.isFinite(y)) return null
   return { x, y, point }
 }
 
 export function projectGeoPoints(points: GeoMapPoint[], bounds: GeoMapBounds | null | undefined, width: number, height: number, padding = 32) {
-  return points
+  const projected = points
     .map((point) => projectGeoPoint(point, bounds, width, height, padding))
     .filter((point): point is GeoMapProjectionPoint => point !== null)
+
+  return projected.map((item, index, all) => {
+    const nearbyBefore = all.slice(0, index).filter((other) => Math.hypot(other.x - item.x, other.y - item.y) < POINT_COLLISION_RADIUS)
+    if (nearbyBefore.length === 0) return item
+    const angle = ((nearbyBefore.length - 1) % 8) * (Math.PI / 4)
+    const radius = POINT_COLLISION_RADIUS + Math.floor((nearbyBefore.length - 1) / 8) * 8
+    return {
+      ...item,
+      x: Math.min(Math.max(item.x + Math.cos(angle) * radius, padding), width - padding),
+      y: Math.min(Math.max(item.y + Math.sin(angle) * radius, padding), height - padding),
+    }
+  })
 }
 
 export function normalizeCoordinateLabel(latitude: Nullable<number | string>, longitude: Nullable<number | string>) {
-  const lat = toNumber(latitude)
-  const lon = toNumber(longitude)
-  if (lat === null || lon === null) return 'Sin coordenadas'
-  return `${lat.toFixed(6)}, ${lon.toFixed(6)}`
+  const coordinates = normalizePointCoordinates({ latitude, longitude })
+  if (!coordinates) return 'Sin coordenadas válidas'
+  return `${coordinates.latitude.toFixed(6)}, ${coordinates.longitude.toFixed(6)}`
 }

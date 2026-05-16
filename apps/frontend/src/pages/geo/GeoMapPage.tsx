@@ -48,12 +48,17 @@ function collectMapData(summary: RouteDistanceSummary): RouteMapViewData {
   const missingById = new Map<string, GeoMapPoint>()
   const segments: GeoMapSegment[] = []
 
+  ;(summary.stops ?? []).forEach((stop, index) => {
+    const point = pointFromStop(stop, `stop-${index}`)
+    if (hasUsableCoordinates(point)) pointsById.set(String(point.id), { ...point, kind: 'route_stop' })
+    else missingById.set(String(point.id), { ...point, kind: 'missing' })
+  })
+
   ;(summary.segments ?? []).forEach((segment: RouteDistanceSegment, index) => {
     const fromPoint = pointFromStop(segment.from_stop, `from-${index}`)
     const toPoint = pointFromStop(segment.to_stop, `to-${index}`)
-    const allPoints = [fromPoint, toPoint]
 
-    allPoints.forEach((point) => {
+    ;[fromPoint, toPoint].forEach((point) => {
       if (hasUsableCoordinates(point)) pointsById.set(String(point.id), { ...point, kind: 'route_stop' })
       else missingById.set(String(point.id), { ...point, kind: 'missing' })
     })
@@ -87,6 +92,9 @@ function collectMapData(summary: RouteDistanceSummary): RouteMapViewData {
     route_code: summary.route_code,
     points,
     missing_points: missingPoints,
+    stops_total: summary.stops_total,
+    stops_with_coordinates: summary.stops_with_coordinates,
+    stops_missing_coordinates: summary.stops_missing_coordinates,
     segments: segments.filter((segment) => pointsById.has(String(segment.fromPointId)) && pointsById.has(String(segment.toPointId))),
     bounds: buildGeoBounds(points),
     distance_km: summary.distance_km,
@@ -107,6 +115,7 @@ export function GeoMapPage() {
   const [updating, setUpdating] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+  const [showLabels, setShowLabels] = useState(true)
 
   useEffect(() => {
     if (!accessToken) return
@@ -191,13 +200,14 @@ export function GeoMapPage() {
 
   const hasIncompleteCoordinates = (mapData?.missing_points.length ?? 0) > 0
   const noEnoughCoordinates = mapData !== null && mapData.points.length < 2
+  const hasNoStops = mapData !== null && Number(mapData.stops_total ?? mapData.points.length + mapData.missing_points.length) === 0
 
   return (
     <div className="space-y-6">
       <section className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-        <span className="inline-flex items-center gap-2 rounded-full bg-cyan-50 px-3 py-1 text-sm font-semibold text-cyan-700">⌖ Prompt 022 — Mapa esquemático</span>
-        <h2 className="mt-4 text-3xl font-bold tracking-tight text-slate-950">Mapa esquemático</h2>
-        <p className="mt-3 max-w-3xl text-slate-600">Visualización interna basada en coordenadas. No es mapa de calles.</p>
+        <span className="inline-flex items-center gap-2 rounded-full bg-cyan-50 px-3 py-1 text-sm font-semibold text-cyan-700">⌖ Prompt 023 — QA visual del mapa esquemático</span>
+        <h2 className="mt-4 text-3xl font-bold tracking-tight text-slate-950">Mapa esquemático interno</h2>
+        <p className="mt-3 max-w-3xl text-slate-600">Visualización interna basada en coordenadas y distancia lineal estimada. No es mapa de calles y no usa servicios externos.</p>
       </section>
 
       <GeoWarningBanner />
@@ -216,9 +226,13 @@ export function GeoMapPage() {
             <input type="number" min="1" step="1" value={averageSpeedKmh} onChange={(event: { target: { value: string } }) => setAverageSpeedKmh(event.target.value)} className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-100" />
           </label>
         </div>
-        <div className="mt-4 flex flex-wrap gap-3">
+        <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
           <button type="button" onClick={loadMapData} disabled={mapLoading || routesLoading || !selectedRouteId} className="rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60">{mapLoading ? 'Dibujando...' : 'Ver mapa esquemático'}</button>
           <button type="button" onClick={handleUpdateEstimates} disabled={updating || routesLoading || !selectedRouteId} className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60">{updating ? 'Actualizando...' : 'Actualizar estimaciones de ruta'}</button>
+          <label className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700">
+            <input type="checkbox" checked={showLabels} onChange={(event: { target: { checked: boolean } }) => setShowLabels(event.target.checked)} className="h-4 w-4 rounded border-slate-300 text-cyan-600" />
+            Mostrar etiquetas
+          </label>
         </div>
         {routesLoading ? <p className="mt-4 rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-500">Cargando rutas...</p> : null}
         {!routesLoading && routes.length === 0 ? <p className="mt-4 rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-800">No hay rutas activas para seleccionar.</p> : null}
@@ -228,12 +242,17 @@ export function GeoMapPage() {
 
       {mapData ? (
         <section className="space-y-5">
-          {hasIncompleteCoordinates ? <p className="rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-800">La ruta tiene coordenadas incompletas. Se dibujan solo los puntos utilizables y se listan las paradas pendientes.</p> : null}
-          {noEnoughCoordinates ? <p className="rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-600">Ruta sin coordenadas suficientes para formar segmentos visuales.</p> : null}
+          {hasIncompleteCoordinates ? <p className="rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-800">La ruta tiene coordenadas incompletas o inválidas. Se dibujan solo los puntos utilizables y se listan las paradas pendientes. Completa coordenadas en Maestros &gt; Direcciones.</p> : null}
+          {hasNoStops ? <p className="rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-600">Esta ruta aún no tiene paradas para visualizar.</p> : null}
+          {!hasNoStops && noEnoughCoordinates ? <p className="rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-600">No hay segmentos porque se requiere al menos dos paradas con coordenadas válidas.</p> : null}
           <RouteMapSummary data={mapData} />
           <GeoMapLegend hasMissingPoints={hasIncompleteCoordinates} />
-          <div className="grid gap-5 xl:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]">
-            <GeoSchematicMap points={mapData.points} segments={mapData.segments} selectedPointId={selectedPointId} onSelectPoint={(point) => setSelectedPointId(point.id)} />
+          <div className="grid min-w-0 gap-5 xl:grid-cols-[minmax(0,2fr)_minmax(300px,1fr)]">
+            {hasNoStops ? (
+              <div className="rounded-3xl border border-dashed border-slate-300 bg-white p-8 text-center text-slate-500">Esta ruta aún no tiene paradas para visualizar.</div>
+            ) : (
+              <GeoSchematicMap points={mapData.points} segments={mapData.segments} selectedPointId={selectedPointId} onSelectPoint={(point) => setSelectedPointId(point.id)} showLabels={showLabels} />
+            )}
             <GeoPointDetails point={selectedPoint} />
           </div>
           <div className="grid gap-5 xl:grid-cols-2">

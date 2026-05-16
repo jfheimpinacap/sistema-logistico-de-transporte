@@ -80,6 +80,7 @@ def calculate_route_distance_summary(route, average_speed_kmh=35):
         "stops_total": len(stops),
         "stops_with_coordinates": stops_with_coordinates,
         "stops_missing_coordinates": len(stops) - stops_with_coordinates,
+        "stops": [_stop_payload(stop) for stop in stops],
         "distance_km": distance_km,
         "estimated_duration_minutes": estimate_duration_minutes(distance_km, average_speed_kmh),
         "segments": segments,

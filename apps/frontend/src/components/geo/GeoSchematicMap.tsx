@@ -17,16 +17,26 @@ function pointKey(value: RoutingId | null | undefined) {
   return String(value ?? '')
 }
 
+function labelText(point: GeoMapPoint, compact: boolean) {
+  if (compact) return `#${point.sequence ?? '—'}`
+  return point.label.length > 28 ? `${point.label.slice(0, 28)}…` : point.label
+}
+
 export function GeoSchematicMap({ points, segments, selectedPointId, onSelectPoint, width = 920, height = 520, showLabels = true, showSegments = true }: Props) {
   const bounds = buildGeoBounds(points)
-  const projected = projectGeoPoints(points, bounds, width, height, 52)
+  const projected = projectGeoPoints(points, bounds, width, height, 56)
   const projectedById = new Map(projected.map((item) => [pointKey(item.point.id), item]))
   const selectedKey = pointKey(selectedPointId)
   const gridLines = [0.2, 0.4, 0.6, 0.8]
+  const compactLabels = points.length > 10
 
   return (
-    <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-      <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Mapa esquemático interno de ruta" className="h-auto w-full bg-slate-50">
+    <div className="min-w-0 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-4 py-3 text-xs text-slate-500">
+        <span className="font-semibold text-slate-700">Mapa esquemático SVG</span>
+        <span>Distancia lineal estimada · No es mapa de calles</span>
+      </div>
+      <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Mapa esquemático interno de ruta" className="block h-auto max-h-[70vh] w-full bg-slate-50">
         <rect x="0" y="0" width={width} height={height} rx="28" className="fill-slate-50" />
         {gridLines.map((ratio) => (
           <g key={ratio} className="stroke-slate-200">
@@ -37,10 +47,10 @@ export function GeoSchematicMap({ points, segments, selectedPointId, onSelectPoi
         <rect x="24" y="24" width={width - 48} height={height - 48} rx="22" className="fill-transparent stroke-slate-200" />
 
         {projected.length === 0 ? (
-          <text x={width / 2} y={height / 2} textAnchor="middle" className="fill-slate-500 text-sm font-semibold">No hay coordenadas disponibles para dibujar la ruta.</text>
+          <text x={width / 2} y={height / 2} textAnchor="middle" className="fill-slate-500 text-sm font-semibold">No hay coordenadas válidas para dibujar la ruta.</text>
         ) : null}
         {projected.length === 1 ? (
-          <text x={width / 2} y={height - 34} textAnchor="middle" className="fill-amber-700 text-xs font-semibold">La ruta tiene un solo punto con coordenadas; agrega más paradas para visualizar segmentos.</text>
+          <text x={width / 2} y={height - 34} textAnchor="middle" className="fill-amber-700 text-xs font-semibold">No hay segmentos porque se requiere al menos dos paradas con coordenadas.</text>
         ) : null}
 
         {showSegments ? segments.map((segment, index) => {
@@ -58,22 +68,29 @@ export function GeoSchematicMap({ points, segments, selectedPointId, onSelectPoi
           )
         }) : null}
 
-        {projected.map(({ point, x, y }) => {
+        {projected.map(({ point, x, y }, index) => {
           const selected = pointKey(point.id) === selectedKey
+          const text = labelText(point, compactLabels)
+          const labelWidth = Math.min(Math.max(text.length * 7 + 24, compactLabels ? 54 : 96), compactLabels ? 78 : 230)
+          const placeLeft = x + labelWidth + 28 > width
+          const placeAbove = index % 2 === 1
+          const labelX = placeLeft ? x - labelWidth - 18 : x + 18
+          const labelY = placeAbove ? y - 42 : y - 17
           return (
             <g key={pointKey(point.id)} className="cursor-pointer" onClick={() => onSelectPoint?.(point)}>
               <circle cx={x} cy={y} r={selected ? 18 : 14} className={selected ? 'fill-slate-950 stroke-cyan-300' : 'fill-cyan-600 stroke-white'} strokeWidth="4" />
               <text x={x} y={y + 4} textAnchor="middle" className="pointer-events-none fill-white text-xs font-bold">{point.sequence ?? '•'}</text>
               {showLabels ? (
                 <g>
-                  <rect x={x + 18} y={y - 17} width={Math.min(Math.max(point.label.length * 7, 92), 220)} height="28" rx="14" className="fill-white/95 stroke-slate-200" />
-                  <text x={x + 30} y={y + 1} className="fill-slate-800 text-xs font-semibold">{point.label.length > 28 ? `${point.label.slice(0, 28)}…` : point.label}</text>
+                  <rect x={labelX} y={labelY} width={labelWidth} height="28" rx="14" className="fill-white/95 stroke-slate-200" />
+                  <text x={labelX + 12} y={labelY + 18} className="fill-slate-800 text-xs font-semibold">{text}</text>
                 </g>
               ) : null}
             </g>
           )
         })}
       </svg>
+      {compactLabels && showLabels ? <p className="border-t border-slate-100 px-4 py-3 text-xs text-slate-500">Etiquetas compactas activadas automáticamente por cantidad de paradas. Puedes ocultarlas con “Mostrar etiquetas”.</p> : null}
     </div>
   )
 }
