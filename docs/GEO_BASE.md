@@ -106,3 +106,58 @@ La actualización no cambia el orden de paradas, no optimiza la ruta y no modifi
 - Optimización automática de rutas.
 - Tráfico.
 - GPS en tiempo real.
+
+## Vista frontend `/geo`
+
+El Prompt 021 agrega una vista protegida en el frontend para usar los endpoints internos de georreferenciación sin incorporar mapas externos ni librerías adicionales. La vista está disponible después del login en:
+
+```text
+/geo
+```
+
+La pantalla muestra siempre una advertencia visible: las distancias son lineales estimadas con fórmula Haversine y no consideran calles, tráfico, restricciones, sentido de tránsito ni peajes.
+
+### Cómo revisar direcciones desde la UI
+
+1. Ejecuta `py start.py prepare` para preparar datos demo, incluyendo coordenadas base cuando corresponde.
+2. Ejecuta `py start.py dev` para levantar backend y frontend.
+3. Abre `/login` e ingresa con usuario `demo` y password `demo1234`.
+4. Abre `/geo` desde la barra lateral o escribiendo la ruta directamente.
+5. Revisa las tarjetas de resumen: total de direcciones, con coordenadas, sin coordenadas e inválidas.
+6. Usa los filtros **Todas** y **Solo sin coordenadas** para alternar el listado diagnóstico.
+
+Si una dirección aparece sin coordenadas o con valores inválidos, corrige latitud/longitud desde **Maestros > Direcciones** antes de confiar en los cálculos de ruta.
+
+### Cómo probar la calculadora Haversine
+
+En la sección **Distancia entre dos puntos**:
+
+1. Ingresa latitud/longitud de origen.
+2. Ingresa latitud/longitud de destino.
+3. Ajusta la velocidad promedio en km/h si necesitas otra estimación.
+4. Presiona **Calcular distancia**.
+5. Revisa distancia en kilómetros, duración estimada, método y advertencia.
+
+La calculadora valida rangos básicos: latitud entre -90 y 90, longitud entre -180 y 180 y velocidad mayor que cero. Los errores 400 del backend se muestran como mensajes legibles.
+
+### Cómo revisar y actualizar estimaciones de ruta
+
+En la sección **Resumen de distancia de ruta**:
+
+1. Selecciona una ruta disponible.
+2. Ajusta la velocidad promedio en km/h.
+3. Presiona **Ver resumen** para consultar `/api/geo/routes/{route_id}/distance-summary/` sin persistir cambios.
+4. Revisa paradas totales, paradas con coordenadas, distancia total, duración estimada y segmentos entre paradas.
+5. Si hay paradas sin coordenadas, la vista muestra la sugerencia: “Completa latitud/longitud en Maestros > Direcciones para mejorar el cálculo.”
+6. Presiona **Actualizar estimaciones de ruta** para llamar `/api/geo/routes/{route_id}/update-estimates/` y persistir `estimated_distance_km` y `estimated_duration_minutes` en la ruta.
+
+La actualización no optimiza el orden de paradas, no usa calles reales y no cambia estados operativos. Solo recalcula estimaciones lineales con el orden manual existente.
+
+## Pendiente para próximas fases
+
+- Mapa visual interactivo.
+- Geocodificación real por API externa.
+- Cálculo por calles reales con motor de rutas.
+- Optimización automática de paradas.
+- Tráfico, peajes y restricciones avanzadas.
+- GPS en tiempo real o tracking continuo.
