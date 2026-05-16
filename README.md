@@ -4,7 +4,7 @@ Sistema logístico tipo TMS liviano para controlar transporte de mercancías, en
 
 ## Estado actual
 
-**Prompt 023 — QA visual y ajustes del mapa esquemático**
+**Prompt 024 — Mejoras responsive del modo conductor web móvil**
 
 El proyecto cuenta con:
 
@@ -22,7 +22,7 @@ El proyecto cuenta con:
 - Frontend protegido para administrar rutas, paradas, asignación de encomiendas, cambio de estados, recálculo de resumen y reordenamiento manual de paradas.
 - Backend de evidencias de entrega e incidencias operativas con archivos en `media/`, acciones de revisión/resolución y tracking asociado.
 - Frontend protegido para administrar evidencias de entrega e incidencias operativas, incluyendo formularios con archivos opcionales, filtros, detalle y acciones custom.
-- Vista responsive de modo conductor en `/driver` para seleccionar rutas, iniciar/completar ruta, gestionar paradas, registrar evidencias/incidencias, adjuntar archivos y capturar ubicación puntual opcional.
+- Vista conductor web responsive en `/driver` mejorada para móvil: tarjetas grandes, botones táctiles, flujo de paradas, evidencia, incidencias y captura de ubicación puntual opcional.
 - Backend de documentos internos logísticos para manifiestos de carga, hojas de ruta, notas internas de traslado y comprobantes internos de entrega.
 - Frontend protegido de documentos internos en `/operations/documents`, con creación manual, edición, emisión interna, anulación, archivo, generación desde ruta/encomienda, líneas y vista imprimible HTML en `/operations/documents/print`.
 - Backend de reportes operativos con app `reports`, endpoints JWT de solo lectura y métricas consolidadas para encomiendas, bultos, rutas, paradas, conductores, vehículos, evidencias, incidencias y documentos internos.
@@ -194,12 +194,19 @@ La descarga operativa sigue siendo CSV compatible con Excel, no XLSX real. Para 
 
 El comando sin argumentos asume `dev`. En Windows intenta abrir backend y frontend en terminales separadas.
 
+
+## Modo conductor web móvil
+
+Prompt 024 mejora la experiencia de `/driver` para celulares con layout de una columna, tarjetas grandes, acciones táctiles, formularios separados por secciones y captura puntual de ubicación. La vista conductor sigue siendo web responsive: no es una app nativa, no implementa offline y no realiza GPS en tiempo real ni tracking continuo. La ubicación se captura solo al presionar el botón correspondiente, por lo que conductores externos pueden operar desde navegador móvil sin depender de GPS instalado en el vehículo.
+
+Documento de uso: [`docs/MODO_CONDUCTOR_MOVIL.md`](docs/MODO_CONDUCTOR_MOVIL.md).
+
 ## Rutas frontend disponibles
 
 - `GET /login` — pantalla pública de login demo.
 - `GET /` — dashboard operativo base, protegido por autenticación.
 - `GET /health` — estado del sistema conectado a `GET /api/health/`, protegido por autenticación.
-- `GET /driver` — modo conductor responsive para operar rutas, paradas, evidencias e incidencias desde móvil.
+- `GET /driver` — modo conductor web responsive para operar rutas, paradas, evidencias, incidencias y ubicación puntual desde navegador móvil; no es app nativa ni GPS en tiempo real.
 - `GET /geo` — diagnóstico geográfico base para direcciones, cálculo Haversine manual, resumen de rutas, segmentos y actualización de estimaciones lineales.
 - `GET /masters` — índice de maestros logísticos, protegido por autenticación.
 - `GET /masters/customers` — CRUD frontend de clientes.

@@ -54,10 +54,10 @@ export function DriverRoutePanel({ token, route: initialRoute, onBack }: DriverR
     try {
       if (action === 'start') {
         await startRoute(route.id, token)
-        setNotice('Ruta iniciada correctamente.')
+        setNotice('Ruta iniciada correctamente. Ya puedes avanzar por las paradas.')
       } else {
         await completeRoute(route.id, token)
-        setNotice('Ruta completada correctamente.')
+        setNotice('Ruta completada correctamente. Operación finalizada.')
       }
       await loadData(route.id)
     } catch (err) {
@@ -73,7 +73,7 @@ export function DriverRoutePanel({ token, route: initialRoute, onBack }: DriverR
     setNotice(null)
     try {
       await changeStopStatus(stop.id, { status }, token)
-      setNotice('Estado de parada actualizado.')
+      setNotice('Estado de parada actualizado. Revisa la parada seleccionada para continuar.')
       setSelectedStopId(stop.id)
       await loadData(route.id)
     } catch (err) {
@@ -88,12 +88,12 @@ export function DriverRoutePanel({ token, route: initialRoute, onBack }: DriverR
   }
 
   return (
-    <div className="mx-auto max-w-6xl space-y-4 pb-6">
+    <div className="mx-auto max-w-6xl space-y-4 pb-28 sm:pb-8">
       {error ? <p className="rounded-2xl bg-rose-50 p-4 text-sm font-medium text-rose-700">{error}</p> : null}
       {notice ? <p className="rounded-2xl bg-emerald-50 p-4 text-sm font-medium text-emerald-700">{notice}</p> : null}
 
       <DriverRouteSummary route={route} />
-      <DriverActionBar route={route} isBusy={isBusy} onBack={onBack} onStart={() => void runRouteAction('start')} onComplete={() => void runRouteAction('complete')} />
+      <DriverActionBar route={route} isBusy={isBusy} onBack={onBack} onRefresh={() => void loadData(route.id)} onStart={() => void runRouteAction('start')} onComplete={() => void runRouteAction('complete')} />
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(360px,0.85fr)]">
         <DriverStopsList
