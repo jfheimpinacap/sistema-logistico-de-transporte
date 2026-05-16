@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
 import { createDeliveryProof, getReadableDriverError } from '../../services/driverService'
 import type { DriverLocationSnapshot } from '../../types/driver'
@@ -26,6 +26,9 @@ function nowForInput() {
   return new Date().toISOString().slice(0, 16)
 }
 
+const inputClass = 'mt-1 w-full rounded-2xl border border-slate-200 px-3 py-3 text-base outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200'
+const sectionClass = 'rounded-3xl border border-slate-100 bg-slate-50 p-4'
+
 export function DriverDeliveryProofForm({ token, route, selectedStop, selectedRouteShipment, routeShipments, shipments, packages, onSaved }: DriverDeliveryProofFormProps) {
   const defaultRouteShipment = selectedRouteShipment ?? routeShipments.find((item) => !selectedStop || String(item.stop) === String(selectedStop.id)) ?? null
   const [routeShipmentId, setRouteShipmentId] = useState(defaultRouteShipment ? String(defaultRouteShipment.id) : '')
@@ -47,6 +50,11 @@ export function DriverDeliveryProofForm({ token, route, selectedStop, selectedRo
   const [isSaving, setIsSaving] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (selectedRouteShipment) setRouteShipmentId(String(selectedRouteShipment.id))
+    else if (!routeShipmentId && defaultRouteShipment) setRouteShipmentId(String(defaultRouteShipment.id))
+  }, [defaultRouteShipment, routeShipmentId, selectedRouteShipment])
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -77,7 +85,7 @@ export function DriverDeliveryProofForm({ token, route, selectedStop, selectedRo
         }),
         token,
       )
-      setMessage('Evidencia guardada. Queda pendiente de revisión por supervisor.')
+      setMessage('Evidencia guardada. La evidencia quedará pendiente de revisión por supervisor.')
       setReceivedByName('')
       setReceivedByRut('')
       setRelationship('')
@@ -94,55 +102,74 @@ export function DriverDeliveryProofForm({ token, route, selectedStop, selectedRo
   }
 
   return (
-    <form onSubmit={handleSubmit} className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+    <form onSubmit={handleSubmit} className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
       <h3 className="text-lg font-black text-slate-950">Registrar evidencia</h3>
-      <p className="mt-1 text-sm text-slate-600">No acepta automáticamente la entrega; la revisión queda en el panel de supervisor.</p>
+      <p className="mt-1 text-sm text-slate-600">La evidencia quedará pendiente de revisión por supervisor.</p>
 
-      <div className="mt-4 space-y-3">
-        <label className="block text-sm font-bold text-slate-700">Encomienda
-          <select value={routeShipmentId} onChange={(event: { target: HTMLInputElement & HTMLSelectElement & HTMLTextAreaElement; currentTarget: HTMLInputElement }) => setRouteShipmentId(event.target.value)} className="mt-1 w-full rounded-2xl border border-slate-200 px-3 py-3 text-sm">
-            <option value="">Selecciona una encomienda</option>
-            {routeShipments.map((item) => {
-              const shipment = shipments.find((record) => String(record.id) === String(item.shipment))
-              return <option key={item.id} value={String(item.id)}>{item.shipment_tracking_code || shipment?.tracking_code || `Encomienda #${item.shipment}`}</option>
-            })}
-          </select>
-        </label>
-        <label className="block text-sm font-bold text-slate-700">Bulto opcional
-          <select value={packageId} onChange={(event: { target: HTMLInputElement & HTMLSelectElement & HTMLTextAreaElement; currentTarget: HTMLInputElement }) => setPackageId(event.target.value)} className="mt-1 w-full rounded-2xl border border-slate-200 px-3 py-3 text-sm">
-            <option value="">Sin bulto específico</option>
-            {shipmentPackages.map((item) => <option key={item.id} value={String(item.id)}>{item.package_code}</option>)}
-          </select>
-        </label>
-        <label className="block text-sm font-bold text-slate-700">Tipo de evidencia
-          <select value={proofType} onChange={(event: { target: HTMLInputElement & HTMLSelectElement & HTMLTextAreaElement; currentTarget: HTMLInputElement }) => setProofType(event.target.value as 'delivery' | 'failed_delivery')} className="mt-1 w-full rounded-2xl border border-slate-200 px-3 py-3 text-sm">
-            <option value="delivery">Entrega realizada</option>
-            <option value="failed_delivery">Entrega fallida</option>
-          </select>
-        </label>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <label className="block text-sm font-bold text-slate-700">Recibido por<input value={receivedByName} onChange={(event: { target: HTMLInputElement & HTMLSelectElement & HTMLTextAreaElement; currentTarget: HTMLInputElement }) => setReceivedByName(event.target.value)} className="mt-1 w-full rounded-2xl border border-slate-200 px-3 py-3 text-sm" /></label>
-          <label className="block text-sm font-bold text-slate-700">RUT<input value={receivedByRut} onChange={(event: { target: HTMLInputElement & HTMLSelectElement & HTMLTextAreaElement; currentTarget: HTMLInputElement }) => setReceivedByRut(event.target.value)} className="mt-1 w-full rounded-2xl border border-slate-200 px-3 py-3 text-sm" /></label>
-        </div>
-        <label className="block text-sm font-bold text-slate-700">Relación con destinatario<input value={relationship} onChange={(event: { target: HTMLInputElement & HTMLSelectElement & HTMLTextAreaElement; currentTarget: HTMLInputElement }) => setRelationship(event.target.value)} placeholder="Titular, familiar, conserjería..." className="mt-1 w-full rounded-2xl border border-slate-200 px-3 py-3 text-sm" /></label>
-        <label className="block text-sm font-bold text-slate-700">Notas<textarea value={notes} onChange={(event: { target: HTMLInputElement & HTMLSelectElement & HTMLTextAreaElement; currentTarget: HTMLInputElement }) => setNotes(event.target.value)} rows={3} className="mt-1 w-full rounded-2xl border border-slate-200 px-3 py-3 text-sm" /></label>
-        <label className="block text-sm font-bold text-slate-700">Firma textual<textarea value={signatureText} onChange={(event: { target: HTMLInputElement & HTMLSelectElement & HTMLTextAreaElement; currentTarget: HTMLInputElement }) => setSignatureText(event.target.value)} rows={2} placeholder="Nombre o texto de conformidad" className="mt-1 w-full rounded-2xl border border-slate-200 px-3 py-3 text-sm" /></label>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <label className="block text-sm font-bold text-slate-700">Foto opcional<input type="file" accept="image/*" capture="environment" onChange={(event: { target: HTMLInputElement & HTMLSelectElement & HTMLTextAreaElement; currentTarget: HTMLInputElement }) => setPhoto(event.currentTarget.files?.[0] ?? null)} className="mt-1 w-full rounded-2xl border border-slate-200 px-3 py-3 text-sm" /></label>
-          <label className="block text-sm font-bold text-slate-700">Archivo firma opcional<input type="file" accept="image/*,.pdf" onChange={(event: { target: HTMLInputElement & HTMLSelectElement & HTMLTextAreaElement; currentTarget: HTMLInputElement }) => setSignatureFile(event.currentTarget.files?.[0] ?? null)} className="mt-1 w-full rounded-2xl border border-slate-200 px-3 py-3 text-sm" /></label>
-        </div>
-        <DriverLocationButton onCaptured={setLocation} />
-        <div className="grid gap-3 sm:grid-cols-2">
-          <label className="block text-sm font-bold text-slate-700">Lugar texto<input value={locationText} onChange={(event: { target: HTMLInputElement & HTMLSelectElement & HTMLTextAreaElement; currentTarget: HTMLInputElement }) => setLocationText(event.target.value)} className="mt-1 w-full rounded-2xl border border-slate-200 px-3 py-3 text-sm" /></label>
-          <label className="block text-sm font-bold text-slate-700">Capturado en<input type="datetime-local" value={capturedAt} onChange={(event: { target: HTMLInputElement & HTMLSelectElement & HTMLTextAreaElement; currentTarget: HTMLInputElement }) => setCapturedAt(event.target.value)} className="mt-1 w-full rounded-2xl border border-slate-200 px-3 py-3 text-sm" /></label>
-        </div>
+      <div className="mt-4 space-y-4">
+        <section className={sectionClass}>
+          <h4 className="text-sm font-black uppercase tracking-wide text-slate-500">Encomienda</h4>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <label className="block text-sm font-bold text-slate-700">Encomienda
+              <select value={routeShipmentId} onChange={(event: { target: HTMLInputElement & HTMLSelectElement & HTMLTextAreaElement; currentTarget: HTMLInputElement }) => setRouteShipmentId(event.target.value)} className={inputClass}>
+                <option value="">Selecciona una encomienda</option>
+                {routeShipments.map((item) => {
+                  const shipment = shipments.find((record) => String(record.id) === String(item.shipment))
+                  return <option key={item.id} value={String(item.id)}>{item.shipment_tracking_code || shipment?.tracking_code || `Encomienda #${item.shipment}`}</option>
+                })}
+              </select>
+            </label>
+            <label className="block text-sm font-bold text-slate-700">Bulto opcional
+              <select value={packageId} onChange={(event: { target: HTMLInputElement & HTMLSelectElement & HTMLTextAreaElement; currentTarget: HTMLInputElement }) => setPackageId(event.target.value)} className={inputClass}>
+                <option value="">Sin bulto específico</option>
+                {shipmentPackages.map((item) => <option key={item.id} value={String(item.id)}>{item.package_code}</option>)}
+              </select>
+            </label>
+          </div>
+        </section>
+
+        <section className={sectionClass}>
+          <h4 className="text-sm font-black uppercase tracking-wide text-slate-500">Resultado</h4>
+          <label className="mt-3 block text-sm font-bold text-slate-700">Tipo de evidencia
+            <select value={proofType} onChange={(event: { target: HTMLInputElement & HTMLSelectElement & HTMLTextAreaElement; currentTarget: HTMLInputElement }) => setProofType(event.target.value as 'delivery' | 'failed_delivery')} className={inputClass}>
+              <option value="delivery">Entrega realizada</option>
+              <option value="failed_delivery">Entrega fallida</option>
+            </select>
+          </label>
+        </section>
+
+        <section className={sectionClass}>
+          <h4 className="text-sm font-black uppercase tracking-wide text-slate-500">Receptor</h4>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <label className="block text-sm font-bold text-slate-700">Recibido por<input value={receivedByName} onChange={(event: { target: HTMLInputElement & HTMLSelectElement & HTMLTextAreaElement; currentTarget: HTMLInputElement }) => setReceivedByName(event.target.value)} className={inputClass} /></label>
+            <label className="block text-sm font-bold text-slate-700">RUT<input value={receivedByRut} onChange={(event: { target: HTMLInputElement & HTMLSelectElement & HTMLTextAreaElement; currentTarget: HTMLInputElement }) => setReceivedByRut(event.target.value)} className={inputClass} /></label>
+          </div>
+          <label className="mt-3 block text-sm font-bold text-slate-700">Relación con destinatario<input value={relationship} onChange={(event: { target: HTMLInputElement & HTMLSelectElement & HTMLTextAreaElement; currentTarget: HTMLInputElement }) => setRelationship(event.target.value)} placeholder="Titular, familiar, conserjería..." className={inputClass} /></label>
+          <label className="mt-3 block text-sm font-bold text-slate-700">Notas de entrega<textarea value={notes} onChange={(event: { target: HTMLInputElement & HTMLSelectElement & HTMLTextAreaElement; currentTarget: HTMLInputElement }) => setNotes(event.target.value)} rows={3} className={inputClass} /></label>
+        </section>
+
+        <section className={sectionClass}>
+          <h4 className="text-sm font-black uppercase tracking-wide text-slate-500">Evidencia</h4>
+          <label className="mt-3 block text-sm font-bold text-slate-700">Foto opcional<input type="file" accept="image/*" capture="environment" onChange={(event: { target: HTMLInputElement & HTMLSelectElement & HTMLTextAreaElement; currentTarget: HTMLInputElement }) => setPhoto(event.currentTarget.files?.[0] ?? null)} className={inputClass} /></label>
+          <label className="mt-3 block text-sm font-bold text-slate-700">Firma textual<textarea value={signatureText} onChange={(event: { target: HTMLInputElement & HTMLSelectElement & HTMLTextAreaElement; currentTarget: HTMLInputElement }) => setSignatureText(event.target.value)} rows={2} placeholder="Nombre o texto de conformidad" className={inputClass} /></label>
+          <label className="mt-3 block text-sm font-bold text-slate-700">Archivo firma opcional<input type="file" accept="image/*,.pdf" onChange={(event: { target: HTMLInputElement & HTMLSelectElement & HTMLTextAreaElement; currentTarget: HTMLInputElement }) => setSignatureFile(event.currentTarget.files?.[0] ?? null)} className={inputClass} /></label>
+        </section>
+
+        <section className={sectionClass}>
+          <h4 className="text-sm font-black uppercase tracking-wide text-slate-500">Ubicación</h4>
+          <div className="mt-3"><DriverLocationButton onCaptured={setLocation} /></div>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <label className="block text-sm font-bold text-slate-700">Lugar texto<input value={locationText} onChange={(event: { target: HTMLInputElement & HTMLSelectElement & HTMLTextAreaElement; currentTarget: HTMLInputElement }) => setLocationText(event.target.value)} className={inputClass} /></label>
+            <label className="block text-sm font-bold text-slate-700">Capturado en<input type="datetime-local" value={capturedAt} onChange={(event: { target: HTMLInputElement & HTMLSelectElement & HTMLTextAreaElement; currentTarget: HTMLInputElement }) => setCapturedAt(event.target.value)} className={inputClass} /></label>
+          </div>
+        </section>
       </div>
 
-      {location ? <p className="mt-3 rounded-2xl bg-emerald-50 p-3 text-sm text-emerald-700">GPS: {location.latitude.toFixed(6)}, {location.longitude.toFixed(6)} · precisión {Math.round(location.accuracy ?? 0)} m</p> : null}
+      {location ? <p className="mt-3 rounded-2xl bg-emerald-50 p-3 text-sm text-emerald-700">Ubicación capturada: {location.latitude.toFixed(6)}, {location.longitude.toFixed(6)} · precisión {Math.round(location.accuracy ?? 0)} m</p> : null}
       {message ? <p className="mt-3 rounded-2xl bg-emerald-50 p-3 text-sm text-emerald-700">{message}</p> : null}
       {error ? <p className="mt-3 rounded-2xl bg-rose-50 p-3 text-sm text-rose-700">{error}</p> : null}
-      <button type="submit" disabled={isSaving || !shipmentId} className="mt-4 w-full rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-black text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-slate-300">
-        {isSaving ? 'Guardando evidencia...' : 'Guardar evidencia'}
+      <button type="submit" disabled={isSaving || !shipmentId} className="mt-4 min-h-12 w-full rounded-2xl bg-emerald-600 px-4 py-3 text-base font-black text-white transition hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-300 disabled:cursor-not-allowed disabled:bg-slate-300">
+        {isSaving ? 'Guardando evidencia...' : !shipmentId ? 'Selecciona una encomienda para guardar' : 'Guardar evidencia'}
       </button>
     </form>
   )

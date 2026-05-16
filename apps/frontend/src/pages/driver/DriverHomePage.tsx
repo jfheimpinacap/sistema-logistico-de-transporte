@@ -73,11 +73,11 @@ export function DriverHomePage() {
       <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <span className="inline-flex rounded-full bg-slate-950 px-3 py-1 text-xs font-bold uppercase tracking-wide text-white">Prompt 012</span>
+            <span className="inline-flex rounded-full bg-slate-950 px-3 py-1 text-xs font-bold uppercase tracking-wide text-white">Prompt 024</span>
             <h2 className="mt-4 text-3xl font-black tracking-tight text-slate-950">Modo conductor</h2>
-            <p className="mt-2 max-w-2xl text-slate-600">Selecciona una ruta para comenzar la operación desde teléfono o pantalla pequeña.</p>
+            <p className="mt-2 max-w-2xl text-slate-600">Selecciona una ruta para operar desde navegador móvil con tarjetas, botones grandes, evidencia, incidencias y ubicación puntual.</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-2 sm:flex-row">
             <button type="button" onClick={() => navigate('/operations/routes')} className="rounded-2xl border border-slate-200 px-4 py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-50">Administrar rutas</button>
             <button type="button" onClick={logout} className="rounded-2xl bg-slate-100 px-4 py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-200">Salir</button>
           </div>
@@ -102,8 +102,8 @@ export function DriverHomePage() {
 
       {!isLoading && activeRoutes.length === 0 ? (
         <div className="rounded-3xl border border-dashed border-slate-300 bg-white p-8 text-center shadow-sm">
-          <h3 className="text-xl font-black text-slate-950">No hay rutas disponibles para conductor</h3>
-          <p className="mt-2 text-slate-600">Primero deben crearse y asignarse rutas en Operación logística &gt; Rutas. Para el MVP se muestran rutas planificadas, asignadas, cargadas o en curso.</p>
+          <h3 className="text-xl font-black text-slate-950">No hay rutas disponibles para operar.</h3>
+          <p className="mt-2 text-slate-600">Crea o asigna rutas desde Operación logística &gt; Rutas. Para el MVP se muestran rutas planificadas, asignadas, cargadas o en curso.</p>
           <button type="button" onClick={() => navigate('/operations/routes')} className="mt-5 rounded-2xl bg-slate-950 px-5 py-3 text-sm font-bold text-white transition hover:bg-slate-800">Ir a Rutas</button>
         </div>
       ) : null}

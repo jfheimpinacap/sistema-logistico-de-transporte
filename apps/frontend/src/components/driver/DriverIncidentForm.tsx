@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
 import { createIncident, getReadableDriverError } from '../../services/driverService'
 import type { DriverLocationSnapshot } from '../../types/driver'
@@ -47,6 +47,9 @@ function nowForInput() {
   return new Date().toISOString().slice(0, 16)
 }
 
+const inputClass = 'mt-1 w-full rounded-2xl border border-slate-200 px-3 py-3 text-base outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200'
+const sectionClass = 'rounded-3xl border border-slate-100 bg-slate-50 p-4'
+
 export function DriverIncidentForm({ token, route, selectedStop, selectedRouteShipment, routeShipments, shipments, packages, onSaved }: DriverIncidentFormProps) {
   const defaultRouteShipment = selectedRouteShipment ?? routeShipments.find((item) => !selectedStop || String(item.stop) === String(selectedStop.id)) ?? null
   const [routeShipmentId, setRouteShipmentId] = useState(defaultRouteShipment ? String(defaultRouteShipment.id) : '')
@@ -65,6 +68,11 @@ export function DriverIncidentForm({ token, route, selectedStop, selectedRouteSh
   const [isSaving, setIsSaving] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (selectedRouteShipment) setRouteShipmentId(String(selectedRouteShipment.id))
+    else if (!routeShipmentId && defaultRouteShipment) setRouteShipmentId(String(defaultRouteShipment.id))
+  }, [defaultRouteShipment, routeShipmentId, selectedRouteShipment])
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -93,7 +101,7 @@ export function DriverIncidentForm({ token, route, selectedStop, selectedRouteSh
         }),
         token,
       )
-      setMessage('Incidencia guardada. Queda abierta para gestión operativa.')
+      setMessage('Incidencia guardada. La incidencia quedará abierta para revisión.')
       setTitle('')
       setDescription('')
       setEvidenceFile(null)
@@ -106,44 +114,71 @@ export function DriverIncidentForm({ token, route, selectedStop, selectedRouteSh
   }
 
   return (
-    <form onSubmit={handleSubmit} className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+    <form onSubmit={handleSubmit} className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
       <h3 className="text-lg font-black text-slate-950">Registrar incidencia</h3>
-      <p className="mt-1 text-sm text-slate-600">Registra excepciones operativas sin bloquear el avance de la ruta.</p>
+      <p className="mt-1 text-sm text-slate-600">La incidencia quedará abierta para revisión. La ubicación es opcional y no bloquea el registro.</p>
 
-      <div className="mt-4 space-y-3">
-        <label className="block text-sm font-bold text-slate-700">Encomienda opcional
-          <select value={routeShipmentId} onChange={(event: { target: HTMLInputElement & HTMLSelectElement & HTMLTextAreaElement; currentTarget: HTMLInputElement }) => setRouteShipmentId(event.target.value)} className="mt-1 w-full rounded-2xl border border-slate-200 px-3 py-3 text-sm">
-            <option value="">Sin encomienda específica</option>
-            {routeShipments.map((item) => {
-              const shipment = shipments.find((record) => String(record.id) === String(item.shipment))
-              return <option key={item.id} value={String(item.id)}>{item.shipment_tracking_code || shipment?.tracking_code || `Encomienda #${item.shipment}`}</option>
-            })}
-          </select>
-        </label>
-        <label className="block text-sm font-bold text-slate-700">Bulto opcional
-          <select value={packageId} onChange={(event: { target: HTMLInputElement & HTMLSelectElement & HTMLTextAreaElement; currentTarget: HTMLInputElement }) => setPackageId(event.target.value)} className="mt-1 w-full rounded-2xl border border-slate-200 px-3 py-3 text-sm">
-            <option value="">Sin bulto específico</option>
-            {shipmentPackages.map((item) => <option key={item.id} value={String(item.id)}>{item.package_code}</option>)}
-          </select>
-        </label>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <label className="block text-sm font-bold text-slate-700">Categoría<select value={category} onChange={(event: { target: HTMLInputElement & HTMLSelectElement & HTMLTextAreaElement; currentTarget: HTMLInputElement }) => setCategory(event.target.value as IncidentCategory)} className="mt-1 w-full rounded-2xl border border-slate-200 px-3 py-3 text-sm">{categories.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
-          <label className="block text-sm font-bold text-slate-700">Severidad<select value={severity} onChange={(event: { target: HTMLInputElement & HTMLSelectElement & HTMLTextAreaElement; currentTarget: HTMLInputElement }) => setSeverity(event.target.value as IncidentSeverity)} className="mt-1 w-full rounded-2xl border border-slate-200 px-3 py-3 text-sm">{severities.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
-        </div>
-        <label className="block text-sm font-bold text-slate-700">Título<input value={title} onChange={(event: { target: HTMLInputElement & HTMLSelectElement & HTMLTextAreaElement; currentTarget: HTMLInputElement }) => setTitle(event.target.value)} required className="mt-1 w-full rounded-2xl border border-slate-200 px-3 py-3 text-sm" /></label>
-        <label className="block text-sm font-bold text-slate-700">Descripción<textarea value={description} onChange={(event: { target: HTMLInputElement & HTMLSelectElement & HTMLTextAreaElement; currentTarget: HTMLInputElement }) => setDescription(event.target.value)} rows={3} className="mt-1 w-full rounded-2xl border border-slate-200 px-3 py-3 text-sm" /></label>
-        <label className="block text-sm font-bold text-slate-700">Archivo evidencia opcional<input type="file" accept="image/*,.pdf" onChange={(event: { target: HTMLInputElement & HTMLSelectElement & HTMLTextAreaElement; currentTarget: HTMLInputElement }) => setEvidenceFile(event.currentTarget.files?.[0] ?? null)} className="mt-1 w-full rounded-2xl border border-slate-200 px-3 py-3 text-sm" /></label>
-        <DriverLocationButton onCaptured={setLocation} />
-        <div className="grid gap-3 sm:grid-cols-2">
-          <label className="block text-sm font-bold text-slate-700">Lugar texto<input value={locationText} onChange={(event: { target: HTMLInputElement & HTMLSelectElement & HTMLTextAreaElement; currentTarget: HTMLInputElement }) => setLocationText(event.target.value)} className="mt-1 w-full rounded-2xl border border-slate-200 px-3 py-3 text-sm" /></label>
-          <label className="block text-sm font-bold text-slate-700">Ocurrió en<input type="datetime-local" value={occurredAt} onChange={(event: { target: HTMLInputElement & HTMLSelectElement & HTMLTextAreaElement; currentTarget: HTMLInputElement }) => setOccurredAt(event.target.value)} className="mt-1 w-full rounded-2xl border border-slate-200 px-3 py-3 text-sm" /></label>
-        </div>
+      <div className="mt-4 space-y-4">
+        <section className={sectionClass}>
+          <h4 className="text-sm font-black uppercase tracking-wide text-slate-500">Relación operativa</h4>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <label className="block text-sm font-bold text-slate-700">Encomienda opcional
+              <select value={routeShipmentId} onChange={(event: { target: HTMLInputElement & HTMLSelectElement & HTMLTextAreaElement; currentTarget: HTMLInputElement }) => setRouteShipmentId(event.target.value)} className={inputClass}>
+                <option value="">Sin encomienda específica</option>
+                {routeShipments.map((item) => {
+                  const shipment = shipments.find((record) => String(record.id) === String(item.shipment))
+                  return <option key={item.id} value={String(item.id)}>{item.shipment_tracking_code || shipment?.tracking_code || `Encomienda #${item.shipment}`}</option>
+                })}
+              </select>
+            </label>
+            <label className="block text-sm font-bold text-slate-700">Bulto opcional
+              <select value={packageId} onChange={(event: { target: HTMLInputElement & HTMLSelectElement & HTMLTextAreaElement; currentTarget: HTMLInputElement }) => setPackageId(event.target.value)} className={inputClass}>
+                <option value="">Sin bulto específico</option>
+                {shipmentPackages.map((item) => <option key={item.id} value={String(item.id)}>{item.package_code}</option>)}
+              </select>
+            </label>
+          </div>
+          <dl className="mt-3 grid gap-2 text-sm text-slate-600 sm:grid-cols-2">
+            <div className="rounded-2xl bg-white p-3"><dt className="font-bold text-slate-500">Ruta</dt><dd>{route.route_code}</dd></div>
+            <div className="rounded-2xl bg-white p-3"><dt className="font-bold text-slate-500">Parada</dt><dd>{selectedStop ? `#${selectedStop.sequence}` : 'Sin parada seleccionada'}</dd></div>
+            <div className="rounded-2xl bg-white p-3"><dt className="font-bold text-slate-500">Conductor</dt><dd>{route.driver_name || 'Sin conductor asignado'}</dd></div>
+            <div className="rounded-2xl bg-white p-3"><dt className="font-bold text-slate-500">Vehículo</dt><dd>{route.vehicle_plate || 'Sin vehículo asignado'}</dd></div>
+          </dl>
+        </section>
+
+        <section className={sectionClass}>
+          <h4 className="text-sm font-black uppercase tracking-wide text-slate-500">Clasificación</h4>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <label className="block text-sm font-bold text-slate-700">Categoría<select value={category} onChange={(event: { target: HTMLInputElement & HTMLSelectElement & HTMLTextAreaElement; currentTarget: HTMLInputElement }) => setCategory(event.target.value as IncidentCategory)} className={inputClass}>{categories.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
+            <label className="block text-sm font-bold text-slate-700">Severidad<select value={severity} onChange={(event: { target: HTMLInputElement & HTMLSelectElement & HTMLTextAreaElement; currentTarget: HTMLInputElement }) => setSeverity(event.target.value as IncidentSeverity)} className={inputClass}>{severities.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
+          </div>
+        </section>
+
+        <section className={sectionClass}>
+          <h4 className="text-sm font-black uppercase tracking-wide text-slate-500">Descripción</h4>
+          <label className="mt-3 block text-sm font-bold text-slate-700">Título<input value={title} onChange={(event: { target: HTMLInputElement & HTMLSelectElement & HTMLTextAreaElement; currentTarget: HTMLInputElement }) => setTitle(event.target.value)} required className={inputClass} /></label>
+          <label className="mt-3 block text-sm font-bold text-slate-700">Descripción<textarea value={description} onChange={(event: { target: HTMLInputElement & HTMLSelectElement & HTMLTextAreaElement; currentTarget: HTMLInputElement }) => setDescription(event.target.value)} rows={3} className={inputClass} /></label>
+        </section>
+
+        <section className={sectionClass}>
+          <h4 className="text-sm font-black uppercase tracking-wide text-slate-500">Ubicación</h4>
+          <div className="mt-3"><DriverLocationButton onCaptured={setLocation} /></div>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <label className="block text-sm font-bold text-slate-700">Lugar texto<input value={locationText} onChange={(event: { target: HTMLInputElement & HTMLSelectElement & HTMLTextAreaElement; currentTarget: HTMLInputElement }) => setLocationText(event.target.value)} className={inputClass} /></label>
+            <label className="block text-sm font-bold text-slate-700">Ocurrió en<input type="datetime-local" value={occurredAt} onChange={(event: { target: HTMLInputElement & HTMLSelectElement & HTMLTextAreaElement; currentTarget: HTMLInputElement }) => setOccurredAt(event.target.value)} className={inputClass} /></label>
+          </div>
+        </section>
+
+        <section className={sectionClass}>
+          <h4 className="text-sm font-black uppercase tracking-wide text-slate-500">Evidencia adjunta</h4>
+          <label className="mt-3 block text-sm font-bold text-slate-700">Archivo evidencia opcional<input type="file" accept="image/*,.pdf" onChange={(event: { target: HTMLInputElement & HTMLSelectElement & HTMLTextAreaElement; currentTarget: HTMLInputElement }) => setEvidenceFile(event.currentTarget.files?.[0] ?? null)} className={inputClass} /></label>
+        </section>
       </div>
 
-      {location ? <p className="mt-3 rounded-2xl bg-emerald-50 p-3 text-sm text-emerald-700">GPS: {location.latitude.toFixed(6)}, {location.longitude.toFixed(6)} · precisión {Math.round(location.accuracy ?? 0)} m</p> : null}
+      {location ? <p className="mt-3 rounded-2xl bg-emerald-50 p-3 text-sm text-emerald-700">Ubicación capturada: {location.latitude.toFixed(6)}, {location.longitude.toFixed(6)} · precisión {Math.round(location.accuracy ?? 0)} m</p> : null}
       {message ? <p className="mt-3 rounded-2xl bg-emerald-50 p-3 text-sm text-emerald-700">{message}</p> : null}
       {error ? <p className="mt-3 rounded-2xl bg-rose-50 p-3 text-sm text-rose-700">{error}</p> : null}
-      <button type="submit" disabled={isSaving || !title.trim()} className="mt-4 w-full rounded-2xl bg-rose-600 px-4 py-3 text-sm font-black text-white transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:bg-slate-300">
+      <button type="submit" disabled={isSaving || !title.trim()} className="mt-4 min-h-12 w-full rounded-2xl bg-rose-600 px-4 py-3 text-base font-black text-white transition hover:bg-rose-700 focus:outline-none focus:ring-2 focus:ring-rose-300 disabled:cursor-not-allowed disabled:bg-slate-300">
         {isSaving ? 'Guardando incidencia...' : 'Guardar incidencia'}
       </button>
     </form>

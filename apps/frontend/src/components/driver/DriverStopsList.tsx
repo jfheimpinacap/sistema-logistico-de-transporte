@@ -12,14 +12,19 @@ type DriverStopsListProps = {
 
 export function DriverStopsList({ stops, routeShipments, selectedStopId, isBusy = false, onSelectStop, onChangeStopStatus }: DriverStopsListProps) {
   if (stops.length === 0) {
-    return <div className="rounded-3xl border border-dashed border-slate-300 bg-white p-6 text-sm text-slate-600">Esta ruta aún no tiene paradas registradas.</div>
+    return (
+      <div className="rounded-3xl border border-dashed border-slate-300 bg-white p-6 text-sm text-slate-600 shadow-sm">
+        <h3 className="text-lg font-black text-slate-950">Ruta sin paradas</h3>
+        <p className="mt-2">Esta ruta aún no tiene paradas registradas. Revisa la planificación en Operación logística &gt; Rutas antes de operar.</p>
+      </div>
+    )
   }
 
   return (
     <section className="space-y-3">
-      <div>
+      <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
         <h3 className="text-lg font-black text-slate-950">Paradas en orden</h3>
-        <p className="text-sm text-slate-600">Toca una parada para ver sus encomiendas y registrar evidencia o incidencia.</p>
+        <p className="mt-1 text-sm text-slate-600">Toca “Ver detalle” para enfocar encomiendas, evidencia e incidencias de una parada.</p>
       </div>
       {stops.map((stop) => (
         <DriverStopCard
