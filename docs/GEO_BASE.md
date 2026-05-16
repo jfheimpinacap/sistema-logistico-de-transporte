@@ -31,7 +31,7 @@ Las métricas generadas por esta fase son aproximadas. No consideran:
 - GPS en tiempo real.
 - Geocodificación automática por API externa.
 
-Tampoco existe aún frontend de mapa visual ni integración con Google Maps, Mapbox, OpenStreetMap, OSRM u OpenRouteService.
+Existe una visualización esquemática interna en `/geo/map`, pero todavía no hay mapa real ni integración con Google Maps, Mapbox, OpenStreetMap, OSRM u OpenRouteService.
 
 ## Cómo cargar coordenadas demo
 
@@ -98,9 +98,30 @@ curl -X POST http://localhost:8002/api/geo/routes/1/update-estimates/ \
 
 La actualización no cambia el orden de paradas, no optimiza la ruta y no modifica estados operativos.
 
-## Queda para fases posteriores
+## Mapa esquemático interno
 
-- Frontend geográfico y mapa visual.
+El Prompt 022 agrega `/geo/map`, una vista protegida de mapa técnico basada en SVG/HTML/CSS, sin dependencias nuevas y sin librerías de mapas. La pantalla permite seleccionar una ruta, configurar velocidad promedio, consultar el resumen de distancia, dibujar paradas con coordenadas, unirlas por segmentos lineales según secuencia, revisar etiquetas y seleccionar puntos para ver detalle.
+
+La proyección convierte cada longitud en coordenada X y cada latitud en coordenada Y dentro del SVG. El eje Y se invierte: una latitud mayor se dibuja más arriba. El cálculo usa límites mínimos/máximos de las coordenadas disponibles, agrega padding para separar los puntos del borde y expande artificialmente rangos cuando hay un solo punto o coordenadas iguales. Los puntos sin latitud/longitud válida no se proyectan; se muestran en una lista aparte con la instrucción de completar latitud/longitud en **Maestros > Direcciones**.
+
+La vista usa los endpoints existentes:
+
+- `GET /api/routes/` para el selector de rutas.
+- `GET /api/geo/routes/{route_id}/distance-summary/` para obtener segmentos y resumen Haversine.
+- `POST /api/geo/routes/{route_id}/update-estimates/` para persistir estimaciones lineales.
+
+### Limitaciones del mapa esquemático
+
+- No es mapa de calles.
+- No dibuja cartografía real.
+- No usa Google Maps, Mapbox, OpenStreetMap, Leaflet ni servicios externos.
+- No calcula recorridos por calles, tráfico, peajes ni restricciones.
+- No optimiza el orden de las paradas.
+- No reemplaza GPS ni tracking en tiempo real.
+
+Conviene pasar a mapas reales cuando el sistema necesite navegación operativa sobre calles, cálculo de ETA por tráfico, restricciones por tipo de vehículo, geocodificación automática, optimización de paradas o visualización cartográfica precisa para usuarios finales.
+
+## Queda para fases posteriores
 - Geocodificación real por API externa.
 - Cálculo por calles reales.
 - Optimización automática de rutas.
@@ -155,7 +176,6 @@ La actualización no optimiza el orden de paradas, no usa calles reales y no cam
 
 ## Pendiente para próximas fases
 
-- Mapa visual interactivo.
 - Geocodificación real por API externa.
 - Cálculo por calles reales con motor de rutas.
 - Optimización automática de paradas.

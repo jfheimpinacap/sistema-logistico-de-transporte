@@ -5,11 +5,13 @@ import { GeoMetricCard } from '../../components/geo/GeoMetricCard'
 import { GeoWarningBanner } from '../../components/geo/GeoWarningBanner'
 import { RouteDistancePanel } from '../../components/geo/RouteDistancePanel'
 import { useAuth } from '../../hooks/useAuth'
+import { useAppRouter } from '../../routes/AppRoutes'
 import { geoService, getReadableGeoError } from '../../services/geoService'
 import type { AddressCheckResponse, GeoSummaryMetric } from '../../types/geo'
 
 export function GeoPage() {
   const { accessToken } = useAuth()
+  const { navigate } = useAppRouter()
   const [onlyMissing, setOnlyMissing] = useState(false)
   const [data, setData] = useState<AddressCheckResponse>({ addresses: [] })
   const [isLoading, setIsLoading] = useState(false)
@@ -49,6 +51,17 @@ export function GeoPage() {
       </section>
 
       <GeoWarningBanner />
+
+      <section className="rounded-3xl border border-cyan-100 bg-cyan-50 p-6 shadow-sm">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-[0.16em] text-cyan-700">Visualización interna</p>
+            <h3 className="mt-2 text-xl font-bold text-slate-950">Mapa esquemático de rutas</h3>
+            <p className="mt-1 max-w-2xl text-sm text-slate-600">El mapa esquemático usa las coordenadas cargadas en direcciones para dibujar paradas y segmentos lineales.</p>
+          </div>
+          <button type="button" onClick={() => navigate('/geo/map')} className="rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800">Abrir mapa esquemático</button>
+        </div>
+      </section>
 
       <section className="space-y-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">

@@ -5,6 +5,7 @@ import { useAuth } from '../hooks/useAuth'
 import { DashboardPage } from '../pages/DashboardPage'
 import { HealthPage } from '../pages/HealthPage'
 import { GeoPage } from '../pages/geo/GeoPage'
+import { GeoMapPage } from '../pages/geo/GeoMapPage'
 import { DriverHomePage } from '../pages/driver/DriverHomePage'
 import { LoginPage } from '../pages/LoginPage'
 import { NotFoundPage } from '../pages/NotFoundPage'
@@ -94,6 +95,8 @@ function renderProtectedPage(path: string) {
       return <HealthPage />
     case '/geo':
       return <GeoPage />
+    case '/geo/map':
+      return <GeoMapPage />
     case '/driver':
       return <DriverHomePage />
     case '/reports':

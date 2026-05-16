@@ -113,3 +113,51 @@ export type GeoSummaryMetric = {
   description?: string
   tone?: 'slate' | 'cyan' | 'emerald' | 'amber' | 'rose'
 }
+
+export type GeoMapPointKind = 'address' | 'route_stop' | 'warehouse' | 'missing'
+
+export type GeoMapPoint = {
+  id: RoutingId
+  label: string
+  latitude?: Nullable<number | string>
+  longitude?: Nullable<number | string>
+  sequence?: Nullable<number>
+  status?: Nullable<string>
+  kind: GeoMapPointKind
+  metadata?: Record<string, unknown>
+}
+
+export type GeoMapBounds = {
+  minLat: number
+  maxLat: number
+  minLon: number
+  maxLon: number
+}
+
+export type GeoMapSegment = {
+  fromPointId: RoutingId
+  toPointId: RoutingId
+  fromSequence?: Nullable<number>
+  toSequence?: Nullable<number>
+  distance_km?: Nullable<number | string>
+  estimated_duration_minutes?: Nullable<number>
+  warning?: Nullable<string>
+}
+
+export type GeoMapProjectionPoint = {
+  x: number
+  y: number
+  point: GeoMapPoint
+}
+
+export type RouteMapViewData = {
+  route_id?: Nullable<RoutingId>
+  route_code?: Nullable<string>
+  points: GeoMapPoint[]
+  segments: GeoMapSegment[]
+  missing_points: GeoMapPoint[]
+  bounds?: Nullable<GeoMapBounds>
+  distance_km?: Nullable<number | string>
+  estimated_duration_minutes?: Nullable<number>
+  warnings: string[]
+}

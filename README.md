@@ -4,7 +4,7 @@ Sistema logístico tipo TMS liviano para controlar transporte de mercancías, en
 
 ## Estado actual
 
-**Prompt 021 — Frontend geográfico base y diagnóstico de coordenadas/rutas**
+**Prompt 022 — Mapa esquemático interno de rutas y coordenadas**
 
 El proyecto cuenta con:
 
@@ -34,8 +34,9 @@ El proyecto cuenta con:
 - Pruebas smoke backend para healthcheck, login demo, endpoints protegidos clave y exportaciones CSV.
 - Backend de georreferenciación base con app `geo`, validación de coordenadas, cálculo Haversine, estimación simple de duración, diagnósticos de direcciones y resúmenes geográficos de rutas.
 - Frontend protegido de georreferenciación base en `/geo`, con diagnóstico de direcciones, calculadora manual Haversine, resumen de distancia por ruta, segmentos entre paradas y actualización de estimaciones.
+- Frontend protegido de mapa esquemático en `/geo/map`, con visualización SVG interna de paradas georreferenciadas, segmentos lineales, etiquetas por secuencia, paradas sin coordenadas y actualización de estimaciones desde la vista.
 
-> La Fase MVP Operativa está lista para prueba manual guiada. La exportación genera CSV compatible con Excel, no archivos XLSX reales. El Prompt 021 agrega frontend geográfico base sobre el backend interno: las distancias son lineales estimadas con Haversine y no consideran calles, tráfico, horarios, restricciones ni peajes. No hay integración aún con mapas externos ni optimización automática.
+> La Fase MVP Operativa está lista para prueba manual guiada. La exportación genera CSV compatible con Excel, no archivos XLSX reales. El Prompt 022 agrega un mapa esquemático SVG sobre el backend geo interno: las distancias son lineales estimadas con Haversine y no consideran calles, tráfico, horarios, restricciones ni peajes. No usa Google Maps, Mapbox, OpenStreetMap ni servicios externos, y no hay optimización automática.
 
 ## Stack técnico
 
@@ -375,7 +376,8 @@ Aclaraciones importantes:
 - No consideran calles, tráfico, horarios, restricciones ni peajes.
 - No hay integración con Google Maps, Mapbox, OpenStreetMap, OSRM u OpenRouteService.
 - No hay optimización automática todavía.
-- La vista frontend `/geo` permite diagnosticar coordenadas y distancias lineales. El mapa visual, cálculo por calles y optimización quedan para prompts posteriores.
+- La vista frontend `/geo` permite diagnosticar coordenadas y distancias lineales.
+- La vista frontend `/geo/map` muestra un mapa esquemático SVG interno de rutas y coordenadas. No es mapa de calles, no usa Google Maps, Mapbox, OpenStreetMap, Leaflet, OSRM ni OpenRouteService, no calcula rutas reales por calles y no optimiza paradas.
 
 Ejemplo de cálculo simple:
 
@@ -623,6 +625,27 @@ El seed de maestros crea datos mínimos de ejemplo:
 - 2 conductores.
 - 2 clientes.
 
+
+## Mapa esquemático interno `/geo/map`
+
+El Prompt 022 agrega una vista protegida para visualizar rutas sobre un plano técnico SVG. Esta pantalla consume:
+
+- `GET /api/routes/` para cargar el selector de rutas.
+- `GET /api/geo/routes/{route_id}/distance-summary/` para obtener paradas, segmentos, distancia y duración estimada.
+- `POST /api/geo/routes/{route_id}/update-estimates/` para persistir estimaciones lineales en la ruta.
+
+La vista proyecta latitud/longitud a coordenadas X/Y dentro de un SVG con padding visual, invierte el eje Y para que latitudes mayores se vean arriba, une paradas según `sequence` y lista aparte los puntos sin coordenadas. Es una visualización esquemática SVG: no es mapa de calles, no calcula rutas reales por calles, no optimiza y no usa servicios externos de mapas.
+
+### Flujo de prueba del mapa esquemático
+
+1. Ejecuta `py start.py prepare`.
+2. Ejecuta `py start.py dev`.
+3. Ingresa con `demo` / `demo1234`.
+4. Abre `/geo/map`.
+5. Selecciona una ruta demo.
+6. Presiona **Ver mapa esquemático** para ver puntos, paradas, segmentos y distancias.
+7. Presiona **Actualizar estimaciones de ruta** para persistir distancia/duración lineal.
+
 ## Validaciones recomendadas
 
 ```bash
@@ -666,7 +689,8 @@ Incluye únicamente:
 - Modo conductor responsive en `/driver` con selección de ruta, resumen, acciones de inicio/completado, paradas ordenadas, cambio de estado de parada, encomiendas asociadas, evidencias, incidencias, archivos y geolocalización puntual opcional.
 - Frontend de reportes operativos en `/reports` y rutas específicas, con métricas, filtros, manejo amigable de errores y exportación CSV compatible con Excel.
 - Frontend geográfico base en `/geo`, con tarjetas, tablas HTML, calculadora Haversine, resumen de rutas y actualización de estimaciones lineales sin dependencias externas de mapas.
+- Mapa esquemático interno en `/geo/map`, con SVG propio para paradas georreferenciadas, segmentos lineales, etiquetas de secuencia, detalle de punto, listado de paradas sin coordenadas y actualización de estimaciones.
 - Documentación QA manual y checklist de validación de la Fase MVP Operativa.
 - Smoke tests backend básicos para validar disponibilidad del MVP operativo.
 
-No incluye todavía gráficos con librerías externas, exportación XLSX real, PDF real, app móvil nativa, modo offline, sincronización offline, firma dibujada, firma electrónica avanzada, optimización automática de rutas, mapa visual interactivo, mapas externos, cálculo real por calles, geocodificación automática por API externa, integración SII, facturación, contabilidad ni GPS en tiempo real. Esos módulos quedan pendientes para próximos prompts.
+No incluye todavía gráficos con librerías externas, exportación XLSX real, PDF real, app móvil nativa, modo offline, sincronización offline, firma dibujada, firma electrónica avanzada, optimización automática de rutas, mapa real interactivo, mapas externos, cálculo real por calles, geocodificación automática por API externa, integración SII, facturación, contabilidad ni GPS en tiempo real. Esos módulos quedan pendientes para próximos prompts.
