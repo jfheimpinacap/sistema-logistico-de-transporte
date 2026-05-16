@@ -157,6 +157,15 @@ def prepare() -> int:
                     "Verifica dependencias, migraciones o disponibilidad del comando."
                 )
             exit_code = exit_code or geo_seed_code
+
+            print("[PREPARE] Creando o actualizando usuario conductor demo...")
+            driver_user_seed_code = run_manage(["seed_demo_driver_user"])
+            if driver_user_seed_code != 0:
+                print(
+                    "[WARN] No se pudo sembrar el usuario conductor demo. "
+                    "Verifica dependencias, migraciones o disponibilidad del comando."
+                )
+            exit_code = exit_code or driver_user_seed_code
     else:
         print("[WARN] Se omiten migraciones y usuario demo porque el backend no quedó listo.")
 

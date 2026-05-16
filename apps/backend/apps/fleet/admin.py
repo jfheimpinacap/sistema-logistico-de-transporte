@@ -26,6 +26,7 @@ class VehicleAdmin(admin.ModelAdmin):
 class DriverAdmin(admin.ModelAdmin):
     """Admin configuration for drivers."""
 
-    list_display = ("first_name", "last_name", "rut", "phone", "status", "default_vehicle", "is_active")
-    list_filter = ("is_active", "status", "license_class")
-    search_fields = ("first_name", "last_name", "rut", "email", "phone")
+    list_display = ("first_name", "last_name", "rut", "user", "driver_type", "location_source", "status", "default_vehicle", "is_active")
+    list_filter = ("is_active", "status", "driver_type", "location_source", "license_class")
+    search_fields = ("first_name", "last_name", "rut", "email", "phone", "user__username", "user__email")
+    autocomplete_fields = ("user", "default_vehicle")

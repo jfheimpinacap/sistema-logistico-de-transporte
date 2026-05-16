@@ -1,4 +1,5 @@
 """Fleet master data models."""
+from django.conf import settings
 from django.db import models
 from django.db.models import Q
 
@@ -88,6 +89,29 @@ class Driver(models.Model):
         ASSIGNED = "assigned", "Asignado"
         INACTIVE = "inactive", "Inactivo"
 
+    class DriverType(models.TextChoices):
+        """Basic ownership/relationship type for drivers."""
+
+        INTERNAL = "internal", "Interno"
+        EXTERNAL = "external", "Externo"
+
+    class LocationSource(models.TextChoices):
+        """Expected source for punctual driver or vehicle location reports."""
+
+        MOBILE_WEB = "mobile_web", "Web móvil"
+        MOBILE_APP = "mobile_app", "App móvil"
+        VEHICLE_GPS = "vehicle_gps", "GPS vehículo"
+        MANUAL = "manual", "Manual"
+        UNKNOWN = "unknown", "No definido"
+
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        related_name="driver_profile",
+        verbose_name="usuario asociado",
+        blank=True,
+        null=True,
+    )
     first_name = models.CharField("nombres", max_length=100)
     last_name = models.CharField("apellidos", max_length=100)
     rut = models.CharField("RUT", max_length=30, blank=True, null=True)
@@ -101,6 +125,18 @@ class Driver(models.Model):
         verbose_name="vehículo por defecto",
         blank=True,
         null=True,
+    )
+    driver_type = models.CharField(
+        "tipo de conductor",
+        max_length=20,
+        choices=DriverType.choices,
+        default=DriverType.INTERNAL,
+    )
+    location_source = models.CharField(
+        "fuente de ubicación",
+        max_length=20,
+        choices=LocationSource.choices,
+        default=LocationSource.MOBILE_WEB,
     )
     status = models.CharField("estado", max_length=20, choices=Status.choices, default=Status.AVAILABLE)
     is_active = models.BooleanField("activo", default=True)
